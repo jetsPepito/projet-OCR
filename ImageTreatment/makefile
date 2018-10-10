@@ -1,21 +1,23 @@
 ## Simple SDL mini code
- 
-CC=clang
- 
-CPPFLAGS= `pkg-config --cflags sdl`
-CFLAGS= -Wall -Wextra -Werror -std=c99 -O3
+CPPFLAGS= -MMD
+CC=gcc
+CFLAGS= -Wall -Wextra -std=c99  `pkg-config --cflags sdl`
 LDFLAGS=
-LDLIBS= `pkg-config --libs sdl` -lSDL_image
- 
-SRC= image_OCR.c
+LDLIBS= -lm `pkg-config --libs sdl`
+
+SRC= main.c
 OBJ= ${SRC:.c=.o}
- 
-all: main
- 
+DEP= ${SRC:.c=.d}
+
 main: ${OBJ}
- 
+
+.PHONY: clean
+
 clean:
-	rm -f *~ *.o
-	rm -f main
- 
+	${RM} ${OBJ}
+	${RM} ${DEP}
+	${RM} main
+
+-include ${DEP}
+
 # END

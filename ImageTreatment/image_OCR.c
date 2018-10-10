@@ -53,9 +53,31 @@ void grayscale(SDL_Surface*img){
   }
 }
 
+void resize(SDL_Surface*img){
+  Uint8 r, g, b ;
+  float h = img-> h;
+  float w = img -> w;
+  Uint32 currentpixel;
+  int resizetab[784];
+  int x, y;
+  float hrate = h/ (float)28;
+  float wrate = w/ (float)28;
+  for(int row = 0; row<28; row++){
+    for(int col = 0; col<28; col++){
+      x = (row * hrate)+0.5;
+      y = (col * wrate)+ 0.5;
+      currentpixel= getpixel(img,y,x);
+      SDL_GetRGB(currentpixel, img -> format, &r, &g, &b);
+      resizetab[row*2 + col] = r ;
+      printf("%d", r);
+    }
+    printf("\n");
+  }
+}
+/*
 void create_filematrix(SDL_Surface*img, char *filename){
   Uint8 r, g, b;
-  fb = fopen(filename, 'w');    /* crée un fichier du nom filename PAS DE GESTION DU .txt POUR LE MOMENT*/
+  fb = fopen(filename, 'w');
   int h = img -> h;
   int w = img -> w;
   Uint32 currentpixel;
@@ -75,23 +97,14 @@ void create_filematrix(SDL_Surface*img, char *filename){
   }
   fclose(fb);
 }
+*/
 
-static inline Uint8* pixelref(SDL_Surface *surf, unsigned x, unsigned y)
-{
- int bpp = surf -> format -> BytesPerPixel;
- return (Uint8*)surf -> pixels + y * surf -> pitch + x * bpp;
-}
-
+/*
 SDL_Surface* LoadImg(char path){
     SDL_Surface *img;
     img = IMG_Load(path);
     if (!img){
-        printf("ERREUR")  /*REMPLACER PAR UNE VRAI ERREUR PLUS TARD */
+        printf("ERREUR");  REMPLACER PAR UNE VRAI ERREUR PLUS TARD
     }
-    return img
-}
-
-
-
-SDL_Surface* resize(SDL_Surface *img){
-    SDL_Surface *res
+    return img;
+}*/
