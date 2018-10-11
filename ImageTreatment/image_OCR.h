@@ -17,4 +17,10 @@ SDL_Surface* copy_image(SDL_Surface *img);
 
 void resize(SDL_Surface *img);
 
+SDL_Surface* LoadImg(char path);
+
+SDL_Surface ResizeChar(SDL_Surface *char);
+
+void SaveImg(char path, SDL_Surface* img);
+
 #endif

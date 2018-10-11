@@ -1,4 +1,4 @@
-# include <basic.h>
+# include "basic.h"
 void putpixel(SDL_Surface *surface, unsigned x, unsigned y, Uint32 pixel) {
     Uint8 *p = pixelref(surface, x, y);
     switch(surface->format->BytesPerPixel) {
@@ -51,4 +51,3 @@ Uint32 getpixel(SDL_Surface *surface, unsigned x, unsigned y)
  }
  return 0;
 }
-

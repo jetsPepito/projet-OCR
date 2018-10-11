@@ -1,8 +1,7 @@
- #include "image_OCR.h"
+#include "image_OCR.h"
 
 
-
- void blackwhite(SDL_Surface*img){
+void blackwhite(SDL_Surface*img){
    /*Variables*/
    Uint8 r;
    Uint8 g;
@@ -74,6 +73,9 @@ void resize(SDL_Surface*img){
     printf("\n");
   }
 }
+
+
+
 /*
 void create_filematrix(SDL_Surface*img, char *filename){
   Uint8 r, g, b;
@@ -99,12 +101,27 @@ void create_filematrix(SDL_Surface*img, char *filename){
 }
 */
 
-/*
+
 SDL_Surface* LoadImg(char path){
     SDL_Surface *img;
     img = IMG_Load(path);
     if (!img){
-        printf("ERREUR");  REMPLACER PAR UNE VRAI ERREUR PLUS TARD
+        printf("ERREUR");
     }
     return img;
-}*/
+}
+
+void SaveImg(char path, SDL_Surface* img){
+  int IsImgSave = SDL_SaveBMP(img, path);
+  if(IsImgSave != 0)
+      printf("Error");
+}
+
+SDL_Surface ResizeChar(SDL_Surface *char){
+  SDL_Surface *resize_char = SDL_CreateRGBSurface(SDL_HWSURFACE,
+                      28,
+                      28,
+                      char->format->BitsPerPixel,255,255,255,0);
+SDL_SoftStretch(char, NULL, resize_char, NULL);
+return resize_char;
+}
