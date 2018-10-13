@@ -104,24 +104,24 @@ void create_filematrix(SDL_Surface*img, char *filename){
 
 SDL_Surface* LoadImg(char path){
     SDL_Surface *img;
-    img = IMG_Load(path);
+    img = SDL_LoadBMP(path);
     if (!img){
         printf("ERREUR");
     }
     return img;
 }
 
-void SaveImg(char path, SDL_Surface* img){
+void SaveImg(char path, SDL_Surface *img){
   int IsImgSave = SDL_SaveBMP(img, path);
   if(IsImgSave != 0)
       printf("Error");
 }
 
-SDL_Surface ResizeChar(SDL_Surface *char){
+SDL_Surface ResizeChar(SDL_Surface *imgchar){
   SDL_Surface *resize_char = SDL_CreateRGBSurface(SDL_HWSURFACE,
                       28,
                       28,
-                      char->format->BitsPerPixel,255,255,255,0);
-SDL_SoftStretch(char, NULL, resize_char, NULL);
-return resize_char;
+                      imgchar->format->BitsPerPixel,255,255,255,0);
+SDL_SoftStretch(imgchar, NULL, resize_char, NULL);
+return *resize_char;
 }
