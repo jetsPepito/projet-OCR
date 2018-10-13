@@ -31,7 +31,7 @@ int main()
     ecran = SDL_SetVideoMode(1600, 800, 32, SDL_HWSURFACE);
     SDL_WM_SetCaption("Chargement d'images en SDL", NULL);
 
-    imageDeFond = SDL_LoadBMP("T.bmp");
+    imageDeFond = SDL_LoadBMP("images/T.bmp");
     resize(imageDeFond);
     SDL_BlitSurface(imageDeFond, NULL, ecran, &positionFond);
 
