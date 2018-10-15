@@ -1,9 +1,9 @@
-#ifndef IMAGE_OCR_H
-#define IMAGE_OCR_H
+#ifndef IMAGE_TREATMENT_H
+#define IMAGE_TREATMENT_H
 
 #include <stdlib.h>
 #include <SDL/SDL.h>
-#include "../BasicFonction/basic.h"
+#include "../BasicFunctions/basic.h"
 
 void create_filematrix(SDL_Surface*img, char *filename);
 

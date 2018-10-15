@@ -1,4 +1,4 @@
-#include "image_OCR.h"
+#include "image_treatment.h"
 
 
 void blackwhite(SDL_Surface*img){

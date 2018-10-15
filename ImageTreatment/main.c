@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <SDL/SDL.h>
 #include <stdio.h>
-#include "image_OCR.h"
+#include "image_treatment.h"
 
 
 void pause()
