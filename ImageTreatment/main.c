@@ -30,8 +30,9 @@ int main()
 
     imageDeFond = SDL_LoadBMP("images/aigle.bmp");
     SDL_BlitSurface(imageDeFond, NULL, ecran, NULL);
-    ResizeChar(imageDeFond);
-    SDL_SaveBMP(imageDeFond," neawinmage.bmp");
+    SDL_Surface *resizeimg;
+    resizeimg =ResizeChar(imageDeFond);
+    SDL_SaveBMP(resizeimg," neawinmage.bmp");
     SDL_Flip(ecran);
     pause();
 

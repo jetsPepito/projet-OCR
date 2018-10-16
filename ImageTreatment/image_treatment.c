@@ -107,11 +107,11 @@ void SaveImg(char path, SDL_Surface *img){
       printf("Error");
 }
 
-SDL_Surface ResizeChar(SDL_Surface *imgchar){
+SDL_Surface* ResizeChar(SDL_Surface *imgchar){
   SDL_Surface *resize_char = SDL_CreateRGBSurface(SDL_HWSURFACE,
                       28,
                       28,
-                      imgchar->format->BitsPerPixel,255,255,255,0);
-SDL_SoftStretch(imgchar, NULL, &resize_char, NULL);
-return *imgchar;
+                      imgchar->format->BitsPerPixel,0,0,0,0);
+SDL_SoftStretch(imgchar, NULL, resize_char, NULL);
+return resize_char;
 }

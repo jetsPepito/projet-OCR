@@ -19,7 +19,7 @@ void resize(SDL_Surface *img);
 
 SDL_Surface LoadImg(char path);
 
-SDL_Surface ResizeChar(SDL_Surface *imgchar);
+SDL_Surface* ResizeChar(SDL_Surface *imgchar);
 
 void SaveImg(char path, SDL_Surface* img);
 
