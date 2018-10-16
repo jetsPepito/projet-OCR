@@ -40,8 +40,8 @@ void grayscale(SDL_Surface*img){
   int w = img -> w;
   Uint32 currentpixel;
   /*for each pixel we applicate the filter*/
-  for (int i = 0 ; i< h ; i++){
-    for (int j = 0 ; j< w; j++){
+  for (int i = 0 ; i< w ; i++){
+    for (int j = 0 ; j< h; j++){
 
       currentpixel = getpixel(img,i,j);
       SDL_GetRGB(currentpixel,img -> format, &r,&g,&b);
@@ -101,16 +101,6 @@ void create_filematrix(SDL_Surface*img, char *filename){
 }
 */
 
-
-SDL_Surface* LoadImg(char path){
-    SDL_Surface *img;
-    img = SDL_LoadBMP(path);
-    if (!img){
-        printf("ERREUR");
-    }
-    return img;
-}
-
 void SaveImg(char path, SDL_Surface *img){
   int IsImgSave = SDL_SaveBMP(img, path);
   if(IsImgSave != 0)
@@ -122,6 +112,6 @@ SDL_Surface ResizeChar(SDL_Surface *imgchar){
                       28,
                       28,
                       imgchar->format->BitsPerPixel,255,255,255,0);
-SDL_SoftStretch(imgchar, NULL, resize_char, NULL);
-return *resize_char;
+SDL_SoftStretch(imgchar, NULL, &resize_char, NULL);
+return *imgchar;
 }

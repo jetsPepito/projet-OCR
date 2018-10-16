@@ -22,19 +22,16 @@ void pause()
 int main()
 {
     SDL_Surface *ecran = NULL, *imageDeFond = NULL;
-    SDL_Rect positionFond;
-    positionFond.x = 0;
-    positionFond.y = 0;
 
     SDL_Init(SDL_INIT_VIDEO);
 
     ecran = SDL_SetVideoMode(1600, 800, 32, SDL_HWSURFACE);
     SDL_WM_SetCaption("Chargement d'images en SDL", NULL);
 
-    imageDeFond = SDL_LoadBMP("images/T.bmp");
-    resize(imageDeFond);
-    SDL_BlitSurface(imageDeFond, NULL, ecran, &positionFond);
-
+    imageDeFond = SDL_LoadBMP("images/aigle.bmp");
+    SDL_BlitSurface(imageDeFond, NULL, ecran, NULL);
+    ResizeChar(imageDeFond);
+    SDL_SaveBMP(imageDeFond," neawinmage.bmp");
     SDL_Flip(ecran);
     pause();
 
