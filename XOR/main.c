@@ -35,12 +35,13 @@ int main(int argc, const char* argv[]) //args: i1, i2 ; non-binary = 0
 	}
 
 	/*Initialize RNG*/
-	//time_t t;
-	//srand((unsigned) time(&t));
+	time_t t;
+	srand((unsigned) time(&t));
 
 	//DEBUG:
-	unsigned long int t = 1539718702;
-	srand(t);
+	//print("%li\n", t);
+	//unsigned long int t = 1539718702;
+	//srand(t);
 
 	/*Declare weigths*/
 	double **w1;	//w1[h (excl. bias)][input (incl. biases)]
@@ -54,12 +55,14 @@ int main(int argc, const char* argv[]) //args: i1, i2 ; non-binary = 0
 	/*Initialize weigths with random values from 0 to 1*/
 	for(int h = 0; h < 2; h++)
 	{
-		for(int i = 0; i < 3; i++)
+		w1[h][0] = 0.0;
+		for(int i = 1; i < 3; i++)
 		{
 			w1[h][i] = (double)(rand() % (100 + 1 - 0) + 0) / (double)(100.0);
 		}
 	}
-	for(int h = 0; h < 3; h++)
+	w2[0] = 0.0;
+	for(int h = 1; h < 3; h++)
 	{
 		w2[h] = (double)(rand() % (100 + 1 - 0) + 0) / (double)(100.0);
 	}
@@ -110,9 +113,9 @@ double sig(double x)
 double predict(int i1, int i2, int target, double** w1, double* w2)
 {
 	/*Initialize inputs and variables*/
-	double inputs[3] = {1.0, ((i1 == 1) ? 1.0 : 0.0), ((i2 == 1) ? 1.0 : 0.0)};
+	double inputs[3] = {-1.0, ((i1 == 1) ? 1.0 : 0.0), ((i2 == 1) ? 1.0 : 0.0)};
 	double hnet[2] = {0.0, 0.0};
-	double hout[3] = {1.0, 0.0, 0.0};
+	double hout[3] = {-1.0, 0.0, 0.0};
 	double targ = (target == 1) ? 1.0 : 0.0;
 
 	/*Forward propagation*/
@@ -140,7 +143,7 @@ double predict(int i1, int i2, int target, double** w1, double* w2)
 		//Output -> Hidden Layer
 		for(int h = 0; h < 3; h++)
 		{
-			double delta = (out - targ) * (out * (1 - out)) * hout[h];
+			double delta = (out - targ) * (out * (1.0 - out)) * hout[h];
 			w2[h] -= delta * 0.7;
 		}
 
@@ -149,7 +152,7 @@ double predict(int i1, int i2, int target, double** w1, double* w2)
 		{
 			for(int i = 0; i < 3; i++)
 			{
-				double delta = (out - targ) * (out * (1 - out)) * w2[h+1]
+				double delta = (out - targ) * (out * (1.0 - out)) * w2[h+1]
 					* (hout[h+1] * (1 - hout[h+1])) * inputs[i];
 				w1[h][i] -= delta * 0.7;
 			}
