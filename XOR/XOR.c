@@ -4,15 +4,19 @@
 #include <time.h>
 #include <string.h>
 
-/*Declare the functions so main stays on top*/
+/*Declare functions*/
 double sig(double x);
+double sigp(double x);
 double predict(int i1, int i2, int target, double** w1, double* w2);
 void train(int n, double** w1, double* w2, int argc);
 void test(int i1, int i2, double** w1, double* w2);
 
-//NBINPUTS (i): 2 + bias (3 out)
-//NBHIDDEN (h): 2 + bias (2 net, 3 out)
-//NBOUTPU  (-): 1		 (1 net, 1 out)
+/*Declare global constants*/
+int NBIN = 3;		//NBINPUTS 		(i): 2 + bias
+int NBHN = 3;		//NBHIDDENNET	(h): 3
+int NBHO = 4;		//NBHIDDENOUT	(h): 3 + bias
+int NBTR = 150000;	//NBTRAININGTURNS
+double ETA = 0.1;	//LEARNING RATE
 
 int main(int argc, const char* argv[]) //args: i1, i2 ; non-binary = 0
 {
@@ -38,38 +42,33 @@ int main(int argc, const char* argv[]) //args: i1, i2 ; non-binary = 0
 	time_t t;
 	srand((unsigned) time(&t));
 
-	//DEBUG:
-	//print("%li\n", t);
-	//unsigned long int t = 1539718702;
-	//srand(t);
-
 	/*Declare weigths*/
-	double **w1;	//w1[h (excl. bias)][input (incl. biases)]
-	w1 = (double **) malloc(2*sizeof(double *));
-	for(int h = 0; h < 2; h++)
-		w1[h] = (double *) malloc(3*sizeof(double));
+	double **w1;	//w1[hnet][input]
+	w1 = (double **) malloc(NBHN*sizeof(double *));
+	for(int h = 0; h < NBHN; h++)
+		w1[h] = (double *) malloc(NBIN*sizeof(double));
 
-	double *w2;		//w2[h (incl. bias)]
-	w2 = (double *) malloc(3*sizeof(double));
+	double *w2;		//w2[hout]
+	w2 = (double *) malloc(NBHO*sizeof(double));
 
-	/*Initialize weigths with random values from 0 to 1*/
-	for(int h = 0; h < 2; h++)
+	/*Initialize weigths with random values from -1 to 1*/
+	for(int h = 0; h < NBHN; h++)
 	{
 		w1[h][0] = 0.0;
-		for(int i = 1; i < 3; i++)
+		for(int i = 1; i < NBIN; i++)
 		{
-			w1[h][i] = (double)(rand() % (100 + 1 - 0) + 0) / (double)(100.0);
+			w1[h][i] = (double)rand()/RAND_MAX*2.0-1.0;
 		}
 	}
 	w2[0] = 0.0;
 	for(int h = 1; h < 3; h++)
 	{
-		w2[h] = (double)(rand() % (100 + 1 - 0) + 0) / (double)(100.0);
+		w2[h] = (double)rand()/RAND_MAX*2.0-1.0;
 	}
 
 	/*Train and test the result*/
 	printf("\nTraining...\n");
-	train(1000000, w1, w2, argc);
+	train(NBTR, w1, w2, argc);
 
 	if(argc > 1)
 	{
@@ -107,58 +106,67 @@ double sig(double x)
 {
 	return (1 / (1 + exp(-x)));
 }
+double sigp(double x)
+{
+	double sigx = sig(x);
+	return (sigx * (1 - sigx));
+}
 
 
-/*Neural network*/ //targ = -1 -> no backprop
+/*Neural network*/
+//target = -1 -> no backprop
 double predict(int i1, int i2, int target, double** w1, double* w2)
 {
 	/*Initialize inputs and variables*/
-	double inputs[3] = {-1.0, ((i1 == 1) ? 1.0 : 0.0), ((i2 == 1) ? 1.0 : 0.0)};
-	double hnet[2] = {0.0, 0.0};
-	double hout[3] = {-1.0, 0.0, 0.0};
 	double targ = (target == 1) ? 1.0 : 0.0;
+	double inputs[3] = {1.0,((i1 == 1) ? 1.0 : 0.0),((i2 == 1) ? 1.0 : 0.0)};
+	double hnet[3] = {0.0, 0.0, 0.0};
+	double hout[4] = {1.0, 0.0, 0.0, 0.0};
+	double net = 0.0;
 
 	/*Forward propagation*/
 	//Inputs -> Hidden layer
-	for(int h = 0; h < 2; h++)
+	for(int h = 0; h < NBHN; h++)
 	{
-		for(int i = 0; i < 3; i++)
+		for(int i = 0; i < NBIN; i++)
 		{
 			hnet[h] += inputs[i] * w1[h][i];
 		}
 	}
-
-	for(int h = 0; h < 2; h++)
+	//Hidden layer activation
+	for(int h = 0; h < NBHN; h++)
 		hout[h+1] = sig(hnet[h]);
 
 	//Hidden layer -> Output
-	double net = 0;
-	for(int h = 0; h < 3; h++)
+	for(int h = 0; h < NBHO; h++)
 		net += hout[h] * w2[h];
+	//Output activation
 	double out = sig(net);
 
 	/*Backward propagation*/
 	if(target != -1)
 	{
 		//Output -> Hidden Layer
-		for(int h = 0; h < 3; h++)
+		for(int h = 0; h < NBHO; h++)
 		{
-			double delta = (out - targ) * (out * (1.0 - out)) * hout[h];
-			w2[h] -= delta * 0.7;
+			//			   derr/dout    dout/dnet   dnet/dw2
+			double delta = (out-targ) * sigp(net) * hout[h] * ETA;
+			w2[h] -= delta;
 		}
 
 		//Hidden layer -> Inputs
-		for(int h = 0; h < 2; h++)
+		for(int h = 0; h < NBHN; h++)
 		{
-			for(int i = 0; i < 3; i++)
+			for(int i = 0; i < NBIN; i++)
 			{
-				double delta = (out - targ) * (out * (1.0 - out)) * w2[h+1]
-					* (hout[h+1] * (1 - hout[h+1])) * inputs[i];
-				w1[h][i] -= delta * 0.7;
+				//			   derr/dout    dout/dnet  dnet/dhout  dhout/dhnet
+				double delta = (out-targ) * sigp(net) * w2[h+1] * sigp(hnet[h])
+								* inputs[i] * ETA;
+				//				dhnet/dw1
+				w1[h][i] -= delta;
 			}
 		}
 	}
-
 	return out;
 }
 
@@ -175,14 +183,14 @@ void train(int n, double** w1, double* w2, int argc)
 		double prediction = predict(i1, i2, targ, w1, w2);
 
 		/*Purely for showcase, remove to optimize*/
-		if(argc <= 1)
+		if(argc <= -5)//1)
 		{
-			if(i <= 5)
-				printf("{%i,%i} : %g\n", i1, i2, prediction);
-			if(i == 6)
+			if(i <= 10)
+				printf("{%i,%i}: %g , expected %i\n", i1, i2, prediction, targ);
+			if(i == 11)
 				printf("    (...)\n");
-			if(i >= n - 6)
-				printf("{%i,%i} : %g\n", i1, i2, prediction);
+			if(i >= n - 11)
+				printf("{%i,%i}: %g , expected %i\n", i1, i2, prediction, targ);
 		}
 	}
 }
@@ -192,10 +200,10 @@ void train(int n, double** w1, double* w2, int argc)
 void test(int i1, int i2, double** w1, double* w2)
 {
 	double prediction = predict(i1, i2, -1, w1, w2);
-	if (prediction >= 0.9)
+	if (prediction >= 0.85)
 		printf("%i XOR %i = 1 	(prediction: %g)\n", i1, i2, prediction);
-	else if (prediction <= 0.1)
+	else if (prediction <= 0.15)
 		printf("%i XOR %i = 0 	(prediction: %g)\n", i1, i2, prediction);
 	else
-		printf("TOO INNACURATE, TRAIN MORE (%g)\n", prediction);
+		printf("%i XOR %i = ? 	(INNACURATE: %g)\n", i1, i2, prediction);
 }
