@@ -26,13 +26,18 @@ int main()
 	SDL_Init(SDL_INIT_VIDEO);
 
 	ecran = SDL_SetVideoMode(1600, 800, 32, SDL_HWSURFACE);
-	SDL_WM_SetCaption("Chargement d'images en SDL", NULL);
+	SDL_WM_SetCaption("Image", NULL);
 
-	imageDeFond = SDL_LoadBMP("images/aigle.bmp");
+	imageDeFond = IMG_Load("images/aigle.bmp");
 	SDL_BlitSurface(imageDeFond, NULL, ecran, NULL);
 	SDL_Surface *resizeimg;
+	SDL_Surface *copy;
+	copy = CopyImg(imageDeFond);
 	resizeimg =ResizeChar(imageDeFond);
-	SDL_SaveBMP(resizeimg," neawinmage.bmp");
+	grayscale(imageDeFond);
+	SaveImg("blacknwhite.jpg", imageDeFond);
+	SaveImg(" neawinmage.bmp", resizeimg);
+	SaveImg("copyimg.jpg", copy);
 	SDL_Flip(ecran);
 	pause();
 
