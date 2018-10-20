@@ -1,7 +1,7 @@
 ## Simple SDL mini code
 CPPFLAGS= -MMD
 CC=gcc
-CFLAGS= -Wall -Wextra -std=c99  `pkg-config --cflags sdl`
+CFLAGS= -Wall -Werror -Wextra -std=c99  `pkg-config --cflags sdl`
 LDFLAGS=
 LDLIBS= -lm `pkg-config --libs sdl` -lSDL_image -lm
 
