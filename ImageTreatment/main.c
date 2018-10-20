@@ -30,7 +30,6 @@ int main()
 	screen = SDL_SetVideoMode(1600, 800, 32, SDL_HWSURFACE);
 	SDL_WM_SetCaption("Image", NULL);
 
-	wait_for_keypressed();
 	//test of grayscale and medianfilter
 	img = IMG_Load("images/bruit.jpg");
 	SDL_BlitSurface(img, NULL, screen, NULL);
