@@ -4,44 +4,47 @@
 #include "image_treatment.h"
 
 
-void pause()
+void wait_for_keypressed()
 {
-	int continuer = 1;
-	SDL_Event event;
+    SDL_Event event;
 
-	while (continuer)
-	{
-		SDL_WaitEvent(&event);
-		switch(event.type)
-		{
-			case SDL_QUIT:
-				continuer = 0;
-		}
-	}
+    // Wait for a key to be down.
+    do
+    {
+        SDL_PollEvent(&event);
+    } while(event.type != SDL_KEYDOWN);
+
+    // Wait for a key to be up.
+    do
+    {
+        SDL_PollEvent(&event);
+    } while(event.type != SDL_KEYUP);
 }
+
+
 int main()
 {
-	SDL_Surface *ecran = NULL, *imageDeFond = NULL;
-
+	//Create everything to test SDL fonction
+	SDL_Surface *screen  = NULL, *img = NULL, *grayscal= NULL;
 	SDL_Init(SDL_INIT_VIDEO);
-
-	ecran = SDL_SetVideoMode(1600, 800, 32, SDL_HWSURFACE);
+	screen = SDL_SetVideoMode(1600, 800, 32, SDL_HWSURFACE);
 	SDL_WM_SetCaption("Image", NULL);
 
-	imageDeFond = IMG_Load("images/aigle.bmp");
-	SDL_BlitSurface(imageDeFond, NULL, ecran, NULL);
-	SDL_Surface *resizeimg;
-	SDL_Surface *copy;
-	copy = CopyImg(imageDeFond);
-	resizeimg =ResizeChar(imageDeFond);
-	grayscale(imageDeFond);
-	SaveImg("blacknwhite.jpg", imageDeFond);
-	SaveImg(" neawinmage.bmp", resizeimg);
-	SaveImg("copyimg.jpg", copy);
-	SDL_Flip(ecran);
-	pause();
-
-	SDL_FreeSurface(imageDeFond);
+	wait_for_keypressed();
+	//test of grayscale and medianfilter
+	img = IMG_Load("images/aigle.bmp");
+	SDL_BlitSurface(img, NULL, screen, NULL);
+	grayscale(img);
+	SaveImg("grayscale.bmp", img);
+	wait_for_keypressed();
+	grayscal= IMG_Load("grayscale.bmp");
+	medianfilter(grayscal);
+	SaveImg("grayscalesansbruit.bmp" ,grayscal );
+	
+	//quit
+	SDL_Flip(screen);
+	wait_for_keypressed();
+	SDL_FreeSurface(img);
 	SDL_Quit();
 	return 0;
 }
