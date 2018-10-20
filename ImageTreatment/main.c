@@ -32,7 +32,7 @@ int main()
 
 	wait_for_keypressed();
 	//test of grayscale and medianfilter
-	img = IMG_Load("images/aigle.bmp");
+	img = IMG_Load("images/bruit.jpg");
 	SDL_BlitSurface(img, NULL, screen, NULL);
 	grayscale(img);
 	SaveImg("grayscale.bmp", img);

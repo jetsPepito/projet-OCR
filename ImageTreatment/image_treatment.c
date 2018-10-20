@@ -103,86 +103,130 @@ void medianfilter(SDL_Surface *img){
 	for(int i = 0 ; i<w ; i++){
 		for(int k = 0 ; k<h ; k++){
 			for(j = k ; j< k+4; j++){
-			//Borders
-			if(i == 0){
-				if(j == 0){
-					array[0] = getpixel(img , i , j);
-					array[1] = getpixel(img , i, j);
-					array[2] = getpixel(img, i+1 , j);
-					array[3] = getpixel(img, i , j+1);
-					array[4] = getpixel(img, i, j);
-					break;
-				}
-				if(j == h){
+				//Borders
+				if(i == 0){
+					if(j == 0){
+						array[0] = getpixel(img , i , j);
+						array[1] = getpixel(img , i, j);
+						array[2] = getpixel(img, i+1 , j);
+						array[3] = getpixel(img, i , j+1);
+						array[4] = getpixel(img, i, j);
+						array[5] = getpixel(img , i+1, j+1);
+						array[6] = getpixel(img, i , j);
+						array[7] = getpixel(img, i , j);
+						array[8] = getpixel(img , i ,j);
+						break;
+					}
+					if(j == h){
+						array[0] = getpixel(img , i , j-1);
+						array[1] = getpixel(img , i, j);
+						array[2] = getpixel(img, i+1 , j);
+						array[3] = getpixel(img, i , j);
+						array[4] = getpixel(img, i, j);
+						array[5] = getpixel(img , i+1, j-1);
+						array[6] = getpixel(img, i , j);
+						array[7] = getpixel(img, i , j);
+						array[8] = getpixel(img , i ,j);
+
+						break;
+					}
 					array[0] = getpixel(img , i , j-1);
-					array[1] = getpixel(img , i, j);
+					array[1] = getpixel(img , i, j+1);
 					array[2] = getpixel(img, i+1 , j);
 					array[3] = getpixel(img, i , j);
 					array[4] = getpixel(img, i, j);
+					array[5] = getpixel(img , i+1, j-1);
+					array[6] = getpixel(img, i+1 , j+1);
+					array[7] = getpixel(img, i , j);
+					array[8] = getpixel(img , i ,j);
+
 					break;
 				}
-				array[0] = getpixel(img , i , j-1);
-				array[1] = getpixel(img , i, j+1);
-				array[2] = getpixel(img, i+1 , j);
-				array[3] = getpixel(img, i , j);
-				array[4] = getpixel(img, i, j);
-				break;
-			}
-			if(i == w){
-				if(j == 0){
-					array[0] = getpixel(img , i , j);
+				if(i == w){
+					if(j == 0){
+						array[0] = getpixel(img , i , j);
+						array[1] = getpixel(img , i, j+1);
+						array[2] = getpixel(img, i-1 , j);
+						array[3] = getpixel(img, i , j);
+						array[4] = getpixel(img, i, j);
+						array[5] = getpixel(img , i-1, j+1);
+						array[6] = getpixel(img, i , j);
+						array[7] = getpixel(img, i , j);
+						array[8] = getpixel(img , i ,j);
+
+						break;
+					}
+					if(j == h){
+						array[0] = getpixel(img , i , j-1);
+						array[1] = getpixel(img , i, j);
+						array[2] = getpixel(img, i-1 , j);
+						array[3] = getpixel(img, i , j);
+						array[4] = getpixel(img, i, j);
+						array[5] = getpixel(img , i-1, j-1);
+						array[6] = getpixel(img, i , j);
+						array[7] = getpixel(img, i , j);
+						array[8] = getpixel(img , i ,j);
+
+						break;
+					}
+					array[0] = getpixel(img , i , j-1);
 					array[1] = getpixel(img , i, j+1);
 					array[2] = getpixel(img, i-1 , j);
 					array[3] = getpixel(img, i , j);
 					array[4] = getpixel(img, i, j);
+					array[5] = getpixel(img , i-1, j+1);
+					array[6] = getpixel(img, i-1 , j-1);
+					array[7] = getpixel(img, i , j);
+					array[8] = getpixel(img , i ,j);
+
+					break;
+
+				}
+				if(j == 0){
+					array[0] = getpixel(img, i, j);
+					array[1] = getpixel(img, i, j);
+					array[2] = getpixel(img, i-1, j);
+					array[3] = getpixel(img, i, j+1);
+					array[4] = getpixel(img, i+1, j);
+					array[5] = getpixel(img , i-1, j+1);
+					array[6] = getpixel(img, i+1 , j+1);
+					array[7] = getpixel(img, i , j);
+					array[8] = getpixel(img , i ,j);
+
 					break;
 				}
 				if(j == h){
-					array[0] = getpixel(img , i , j-1);
-					array[1] = getpixel(img , i, j);
-					array[2] = getpixel(img, i-1 , j);
-					array[3] = getpixel(img, i , j);
-					array[4] = getpixel(img, i, j);
+					array[0] = getpixel(img, i, j);
+					array[1] = getpixel(img, i, j);
+					array[2] = getpixel(img, i-1, j);
+					array[3] = getpixel(img, i, j-1);
+					array[4] = getpixel(img, i+1, j);
+					array[5] = getpixel(img , i+1, j-1);
+					array[6] = getpixel(img, i-1 , j-1);
+					array[7] = getpixel(img, i , j);
+					array[8] = getpixel(img , i ,j);
+
+					break;
+
+				}
+				else{
+					//general case
+					array[0] = getpixel(img, i-1, j);
+					array[1] = getpixel(img, i, j);
+					array[2] = getpixel(img, i, j-1);
+					array[3] = getpixel(img, i, j+1);
+					array[4] = getpixel(img, i+1, j);
+					array[5] = getpixel(img , i-1, j-1);
+					array[6] = getpixel(img, i+1 , j-1);
+					array[7] = getpixel(img, i-1 , j+1);
+					array[8] = getpixel(img , i+1 ,j+1);
+
 					break;
 				}
-				array[0] = getpixel(img , i , j-1);
-				array[1] = getpixel(img , i, j+1);
-				array[2] = getpixel(img, i-1 , j);
-				array[3] = getpixel(img, i , j);
-				array[4] = getpixel(img, i, j);
-				break;
-
 			}
-			if(j == 0){
-				array[0] = getpixel(img, i, j);
-				array[1] = getpixel(img, i, j);
-				array[2] = getpixel(img, i-1, j);
-				array[3] = getpixel(img, i, j+1);
-				array[4] = getpixel(img, i+1, j);
-				break;
-			}
-			if(j == h){
-				array[0] = getpixel(img, i, j);
-				array[1] = getpixel(img, i, j);
-				array[2] = getpixel(img, i-1, j);
-				array[3] = getpixel(img, i, j-1);
-				array[4] = getpixel(img, i+1, j);
-				break;
-
-			}
-			else{
-				//general case
-				array[0] = getpixel(img, i-1, j);
-				array[1] = getpixel(img, i, j);
-				array[2] = getpixel(img, i, j-1);
-				array[3] = getpixel(img, i, j+1);
-				array[4] = getpixel(img, i+1, j);
-				break;
-			}
-		}
 			/*Bubble sort of the list */
-			for (int x = 0; x < 4; x++){
-				for (int y = 0; y < 4-x; y++){
+			for (int x = 0; x < 8; x++){
+				for (int y = 0; y < 8-x; y++){
 					if (array[y] > array[y+1]){
 						swap = array[y];
 						array[y] = array[y+1];
@@ -190,9 +234,9 @@ void medianfilter(SDL_Surface *img){
 					}
 				}
 			}
-			mid = array[2];
+			mid = array[4];
 			putpixel(img, i, j, mid);
-			
+
 		}
 	}
 
