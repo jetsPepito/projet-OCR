@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL/SDL.h>
-#include "../SPE_Project/projet-OCR/BasicFunctions/basic.h"
+#include "../BasicFunctions/basic.h"
 #include "Segmentation.h"
 
 
