@@ -1,5 +1,27 @@
 #include "image_treatment.h"
 
+unsigned long medianpixel(SDL_Surface *img){
+	/*Variables*/
+	Uint8 r, g, b ;
+	int h = img-> h;
+	int w = img -> w;
+	Uint32 currentpixel;
+	unsigned long sum ;
+
+	for (int i = 0 ; i< w ; i++){
+		for (int j = 0 ; j< h; j++){
+
+			currentpixel = getpixel(img,i,j);
+			SDL_GetRGB(currentpixel,img -> format, &r,&g,&b);
+			sum += r;
+
+		}
+	}
+	sum = sum / (h*w);
+	return sum;
+}
+
+
 
 void blackwhite(SDL_Surface*img){
 	/*Variables*/
@@ -9,13 +31,14 @@ void blackwhite(SDL_Surface*img){
 	int h = img -> h;
 	int w = img -> w;
 	Uint32 currentpixel;
+	unsigned long med =medianpixel(img);
 	/*each pixel will become black or white */
 	for (int i = 0 ; i< w ; i++){
 		for (int j = 0 ; j< h; j++){
 			currentpixel = getpixel(img,i,j);
 			SDL_GetRGB(currentpixel,img -> format , &r,&g,&b);
 
-			if(r>= 127 && g>= 127 && b>= 127){
+			if(r>= med){
 				r = 255;
 				g = 255;
 				b = 255;
@@ -53,14 +76,6 @@ void grayscale(SDL_Surface*img){
 }
 
 
-/*Save the image using a path */
-void SaveImg(const char *path, SDL_Surface *img){
-	SDL_SaveBMP(img, path);
-	if(!img)
-		errx(1, "Couldn't save the image ");
-	/*if the image cannot be save return an error*/
-}
-
 
 /* Resize the SDL surface of the char in 28x28 for the NeuralNetwork*/
 SDL_Surface* ResizeChar(SDL_Surface *imgchar){
@@ -70,25 +85,6 @@ SDL_Surface* ResizeChar(SDL_Surface *imgchar){
 			imgchar->format->BitsPerPixel,0,0,0,0);
 	SDL_SoftStretch(imgchar, NULL, resize_char, NULL);
 	return resize_char;
-}
-
-
-/*Copy the image in a new image*/
-SDL_Surface* CopyImg(SDL_Surface *img){
-	int h = img-> h;
-	int w = img -> w;
-	Uint32 currentpixel; 
-	SDL_Surface *copy = SDL_CreateRGBSurface(SDL_HWSURFACE,
-			w ,
-			h,
-			img->format->BitsPerPixel,0,0,0,0);
-	for (int i = 0 ; i< w ; i++){
-		for (int j = 0 ; j< h; j++){
-			currentpixel = getpixel(img, i, j);
-			putpixel(copy, i, j, currentpixel);
-		}
-	}
-	return copy;
 }
 
 

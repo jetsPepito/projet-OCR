@@ -2,24 +2,7 @@
 #include <SDL/SDL.h>
 #include <stdio.h>
 #include "image_treatment.h"
-
-
-void wait_for_keypressed()
-{
-    SDL_Event event;
-
-    // Wait for a key to be down.
-    do
-    {
-        SDL_PollEvent(&event);
-    } while(event.type != SDL_KEYDOWN);
-
-    // Wait for a key to be up.
-    do
-    {
-        SDL_PollEvent(&event);
-    } while(event.type != SDL_KEYUP);
-}
+#include "sdl.h"
 
 
 int main()
@@ -39,7 +22,7 @@ int main()
 	grayscal= IMG_Load("grayscale.bmp");
 	medianfilter(grayscal);
 	SaveImg("grayscalesansbruit.bmp" ,grayscal );
-	
+
 	//quit
 	SDL_Flip(screen);
 	wait_for_keypressed();

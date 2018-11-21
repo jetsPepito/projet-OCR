@@ -5,7 +5,7 @@ CFLAGS= -Wall -Werror -Wextra -std=c99  `pkg-config --cflags sdl`
 LDFLAGS=
 LDLIBS= -lm `pkg-config --libs sdl` -lSDL_image -lm
 
-SRC= main.c image_treatment.c ../BasicFunctions/basic.c
+SRC= main.c image_treatment.c ../BasicFunctions/basic.c sdl.c
 OBJ= ${SRC:.c=.o}
 DEP= ${SRC:.c=.d}
 
