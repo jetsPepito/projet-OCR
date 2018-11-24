@@ -14,9 +14,10 @@ int main()
 	SDL_WM_SetCaption("Image", NULL);
 
 	//test of grayscale and medianfilter
-	img = IMG_Load("images/bruit.jpg");
+	img = IMG_Load("images/texte.jpg");
 	SDL_BlitSurface(img, NULL, screen, NULL);
 	grayscale(img);
+	blackwhite(img);
 	SaveImg("grayscale.bmp", img);
 	wait_for_keypressed();
 	grayscal= IMG_Load("grayscale.bmp");

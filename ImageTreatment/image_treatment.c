@@ -6,7 +6,7 @@ unsigned long medianpixel(SDL_Surface *img){
 	int h = img-> h;
 	int w = img -> w;
 	Uint32 currentpixel;
-	unsigned long sum ;
+	unsigned long sum = 0 ;
 
 	for (int i = 0 ; i< w ; i++){
 		for (int j = 0 ; j< h; j++){
