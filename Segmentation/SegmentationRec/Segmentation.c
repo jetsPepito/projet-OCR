@@ -57,6 +57,8 @@ DoubleInt Make_Histogram(SDL_Surface *img, Rectangle rectangle,int axis)
     return list&length;
 }
 
+int Nb_Empty_Case(DoubleInt )
+
 DoubleRect Divide_Image(SDL_Surface *img, Rectangle rectangle,  int i, int axis)
 {
     Uint32 currentPixel;
@@ -126,14 +128,14 @@ DoubleRect Divide_Image(SDL_Surface *img, Rectangle rectangle,  int i, int axis)
 
 int Checklist(DoubleInt list&length)
 {
-    int isChar = 0;
+    int isChar = 1;
     int i = 0;
     
-    while (i < list&length.c && is Char = 0)
+    while (i < list&length.c && isChar == 0)
     {
         if (list&length.l[i] == 0)
         {
-            isChar = 1;
+            isChar = 0;
         }
     }
     return isChar;
@@ -163,8 +165,13 @@ int Find_Index(DoubleInt list&length)
     }
 }
 
-void RXY_Cut(SDL_Surface *img, Rectangle rectangle,  int axis)
+void RXY_Cut(SDL_Surface *img, Rectangle rectangle,)
 {
+    DoubleInt histoX = Make_Histogram(img, rectangle, 0);
+    DoubleInt histoY = Make_Histogram(img, rectangle, 1);
+
+    int emptyCase1 = 
+
     DoubleInt list&length =  Make_Histogram(img, rectangle, axis);
 
     

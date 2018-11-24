@@ -23,4 +23,4 @@ struct DoubleRect
 {
     Rectangle Rect1;
     Rectangle Rect2;
-};
+}
