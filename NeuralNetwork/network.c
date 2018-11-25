@@ -16,13 +16,13 @@
 #define NBOU 63			//NBOUTPUTS			o : 62  + bias	| lettersUL + digits
 #define NBTR 100000		//NBTRAININGTURNS
 #define ETA 0.1			//LEARNING RATE
-#define PATH "nn.txt"	//SAVE FILE FOR THE WEIGTHS
+#define PATH "weights"	//SAVE FILE FOR THE WEIGTHS
 
 /*============================================================================*/
 
 
 
-/*======================= Define weight  data structure ======================*/
+/*======================= Define weights data structure ======================*/
 
 typedef struct weights
 {
@@ -52,7 +52,7 @@ void freeW(weight *w)
 
 
 /*============================= Declare functions ============================*/
-
+/*
 //sigmoid
 double sig(double x);
 //sigmoid prime
@@ -67,17 +67,18 @@ void save(double *wIH, double *wHO);
 void load(double *wIH, double *wHO);
 //initialize pointers
 void init(char reset, SDL_surface *src, double *inputs, double *wIH, \
-double *hOut, double *wHO);
+	double *hNet, double *hOut, double *wHO, double *net)
 //forward and backward propagation
 void identify(char mode, double *inputs, double *wIH, double *hNet, \
-double *hOut, double *wHO, double *net, double *out, char expected);
+	double *hOut, double *wHO, double *net, double *out, char expected);
 //main function to call | mode = (t)rain/(e)val | reset weigths = (y)es/(n)o
 char network(SDL_surface *src, char mode, char reset, char expected);
-
+*/
 /*============================================================================*/
 
 
 
+/*============================= Declare functions ============================*/
 /*=================================== Code ===================================*/
 
 //sigmoid
@@ -117,6 +118,8 @@ void save(double *wIH, double *wHO)
 
 	FILE *f = fopen(PATH);
 	fwrite(w, sizeof(weight), 1, f)
+
+	freeW(w);
 }
 
 //load weigths
@@ -128,11 +131,13 @@ void load(double *wIH, double *wHO)
 
 	*wIH = *w->wInpHid;
 	*wHO = *w->wHidOut;
+
+	freeW(w);
 }
 
 //initialize pointers
 void init(char reset, SDL_surface *src, double *inputs, double *wIH, \
-double *hOut, double *wHO)
+	double *hNet, double *hOut, double *wHO, double *net)
 {
 	/*Weights*/
 	if(reset == 'n') {
@@ -165,16 +170,51 @@ double *hOut, double *wHO)
 	}
 
 	/*Hidden layer*/
+	for(h1 = 0; h1 < NBHN; h1++) {
+		hNet[h1] = 0.0;
+	}
 	hOut[0] = 1.0; // bias
+
+	/*Outputs*/
+	for(o = 0; o < NBOU; o++) {
+		net[o] = 0.0;
+	}
 
 }
 
 //forward and backward propagation
 void identify(char mode, double *inputs, double *wIH, double *hNet, \
-double *hOut, double *wHO, double *net, double *out, char expected)
+	double *hOut, double *wHO, double *net, double *out, char expected)
 {
+	/*========== Forward Propagation ==========*/
+	// inputs -> hidden layer
+	for(int i = 0; i < NBIN; i++) {
+		for(int h1 = 0; h1 < NBHN; h1++) {
+			hNet[h1] += inputs[i] * wIH[i * NBHN + h1];
+		}
+	}
+
+	// hidden layer activation
+	for(int h1 = 0; h1 < NBHN; h1++) {
+		hOut[h1+1] = sig(hNet[h1]);
+	}
+
+	// hidden layer -> outputs
+	for(int h2 = 0; h2 < NBHO; h2++) {
+		for(int o = 0; o < NBOU; o++) {
+			net[o] += hOut[h2] * wHO[h2 * NBOU + o];
+		}
+	}
+
+	// outputs activation
+	for(int o = 0; o < NBOU; o++) {
+		out[o] = sig(net[o]); // TODO replace with softmax
+	}
+	/*=========================================*/
+
+	/*========== Backward Propagation =========*/
 	// TODO
-	return
+	/*=========================================*/
 }
 
 //main function to call | mode = (t)rain/eval | reset weigths = (n)o/yes
@@ -184,8 +224,19 @@ char network(SDL_surface *src, char mode, char reset, char expected)
 	time_t t;
 	srand((unsigned) time(&t));
 
+	/*Adapt the expected char to the corresponding index of the table below*/
+	if(expected >= 'a' && expected <= 'z') {
+		expected -= 'a';
+	}
+	else if(expected >= 'A' && expected <= 'Z') {
+		expected -= 'A' + 26;
+	}
+	else {
+		expected -= '0' + 26 + 26;
+	}
+
 	/*Initilize the list of possible chars*/
-	char *CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+	char *CHARS="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 	/*Declare pointers*/
 	double *inputs = (double *) malloc(sizeof(double) * NBIN);
@@ -197,7 +248,7 @@ char network(SDL_surface *src, char mode, char reset, char expected)
 	double *out = (double *) malloc(sizeof(double) * NBOU);
 
 	/*Initialize pointers*/
-	init(reset, src, inputs, wIH, hOut, wHO);
+	init(reset, src, inputs, wIH, hNet, hOut, wHO, net);
 
 	/*Propagate*/
 	identify(mode, inputs, wIH, hNet, hOut, wHO, net, out, expected);
