@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
 #include "../BasicFunctions/basic.h"
 #include "network.h"
 
@@ -14,9 +16,7 @@
 #define NBHN 784		//NBHIDDENNET		h1: 784
 #define NBHO 785		//NBHIDDENOUT		h2: 784 + bias
 #define NBOU 63			//NBOUTPUTS			o : 62  + bias	| lettersUL + digits
-#define NBTR 100000		//NBTRAININGTURNS
 #define ETA 0.1			//LEARNING RATE
-#define PATH "weights"	//SAVE FILE FOR THE WEIGTHS
 
 /*============================================================================*/
 
@@ -24,11 +24,11 @@
 
 /*======================= Define weights data structure ======================*/
 
-typedef struct weights
+typedef struct weight
 {
 	double *wInpHid;
 	double *wHidOut;
-}weights;
+}weight;
 
 weight *newW()
 {
@@ -42,9 +42,9 @@ weight *newW()
 
 void freeW(weight *w)
 {
-	free (w->wInpHid)
-	free (w->wHidOut)
-	free (w)
+	free (w->wInpHid);
+	free (w->wHidOut);
+	free (w);
 }
 
 /*============================================================================*/
@@ -95,29 +95,34 @@ double sigp(double x)
 }
 
 //softmax
-double softmax()
+void softmax(double *net, double *out)
 {
-	// TODO
-	return 0.0
+	double sum = 0;
+	for(int k = 0; k < NBOU; k++) {
+		sum += exp(net[k]);
+	}
+	for(int j = 0; j < NBOU; j++) {
+		out[j] = exp(net[j]) / sum;
+	}
 }
 
 //softmax prime
-double softmaxp()
+double softmaxp(double *out, int j, int i)
 {
-	// TODO
-	return 0.0
+	return (out[i] * (((i == j) ? 1 : 0) - out[j]));
 }
 
 //save weigths
 void save(double *wIH, double *wHO)
 {
+	char *PATH = "weights";
 	weight *w = newW();
 
-	*w->wInpHid = *wIH;
-	*w->wHidOut = *wHO;
+	w->wInpHid = wIH;
+	w->wHidOut = wHO;
 
-	FILE *f = fopen(PATH);
-	fwrite(w, sizeof(weight), 1, f)
+	FILE *f = fopen(PATH, "wb");
+	fwrite(w, sizeof(weight), 1, f);
 
 	freeW(w);
 }
@@ -125,18 +130,19 @@ void save(double *wIH, double *wHO)
 //load weigths
 void load(double *wIH, double *wHO)
 {
+	char *PATH = "weights";
 	weight *w = newW();
-	FILE *f = fopen(PATH);
-	fread(w, sizeof(weight), 1, f)
+	FILE *f = fopen(PATH, "rb");
+	fread(w, sizeof(weight), 1, f);
 
-	*wIH = *w->wInpHid;
-	*wHO = *w->wHidOut;
+	*wIH = *(w->wInpHid);
+	*wHO = *(w->wHidOut);
 
 	freeW(w);
 }
 
 //initialize pointers
-void init(char reset, SDL_surface *src, double *inputs, double *wIH, \
+void init(char reset, SDL_Surface *src, double *inputs, double *wIH, \
 	double *hNet, double *hOut, double *wHO, double *net)
 {
 	/*Weights*/
@@ -157,26 +163,26 @@ void init(char reset, SDL_surface *src, double *inputs, double *wIH, \
 
 	/*Inputs*/
 	inputs[0] = 1.0; // bias
-	uint32 px;
-	uint8 r;
-	uint8 g;
-	uint8 b;
+	Uint32 px;
+	Uint8 r;
+	Uint8 g;
+	Uint8 b;
 	for(int x = 0; x < 28; x++) {
 		for(int y = 0; y < 28; y++) {
-			px = getpixel(src, x, y)
-			SDL_GetRGB(px, img->format, &r, &g, &b);
-			inputs[x * 28 + y + 1] = (r == 255) ? 0.0 : 1.0 // b = 1, w = 0
+			px = getpixel(src, x, y);
+			SDL_GetRGB(px, src->format, &r, &g, &b);
+			inputs[x * 28 + y + 1] = (r == 255) ? 0.0 : 1.0; // b = 1, w = 0
 		}
 	}
 
 	/*Hidden layer*/
-	for(h1 = 0; h1 < NBHN; h1++) {
+	for(int h1 = 0; h1 < NBHN; h1++) {
 		hNet[h1] = 0.0;
 	}
 	hOut[0] = 1.0; // bias
 
 	/*Outputs*/
-	for(o = 0; o < NBOU; o++) {
+	for(int o = 0; o < NBOU; o++) {
 		net[o] = 0.0;
 	}
 
@@ -207,33 +213,46 @@ void identify(char mode, double *inputs, double *wIH, double *hNet, \
 	}
 
 	// outputs activation
-	for(int o = 0; o < NBOU; o++) {
-		out[o] = sig(net[o]); // TODO replace with softmax
-	}
+	softmax(net, out);
 	/*=========================================*/
 
 	/*========== Backward Propagation =========*/
-	// TODO
+	if(mode == 't') {
+		char *CHARS="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+		// Output -> Hidden Layer
+		// -= dErr/dOut * dOut/dNet * dNet/dWHO * ETA
+		for(int h2 = 0; h2 < NBHO; h2++) {
+			for(int o = 0; o < NBOU; o++) {
+				wHO[h2 * NBOU + o] -= ((out[o] - ((CHARS[o] == expected) ? 1 : 0))
+										* softmaxp(out, h2, o)
+				 						* hOut[h2] * ETA);
+			}
+		}
+
+		// Hidden layer -> Inputs
+		// -= dErr/dOut * dOut/dNet * dNet/dHOut * dHout/dHNet * dHNet/dWIH  *ETA
+		for(int i = 0; i < NBIN; i++) {
+			for(int h1 = 0; h1 < NBHN; h1++) {
+				double deltaHO = 0.0;
+				for(int o = 0; o < NBOU; o++) {
+					deltaHO += ((out[o] - ((CHARS[o] == expected) ? 1 : 0))
+								* softmaxp(out, h1 + 1, o)
+					 			* wHO[(h1 + 1) * NBOU + o]);
+				}
+				wIH[i * NBHN + h1] -= (deltaHO * sigp(hNet[h1]) * inputs[i] * ETA);
+			}
+		}
+	}
 	/*=========================================*/
 }
 
 //main function to call | mode = (t)rain/eval | reset weigths = (n)o/yes
-char network(SDL_surface *src, char mode, char reset, char expected)
+char network(SDL_Surface *src, char mode, char reset, char expected)
 {
 	/*Initialize RNG*/
 	time_t t;
 	srand((unsigned) time(&t));
-
-	/*Adapt the expected char to the corresponding index of the table below*/
-	if(expected >= 'a' && expected <= 'z') {
-		expected -= 'a';
-	}
-	else if(expected >= 'A' && expected <= 'Z') {
-		expected -= 'A' + 26;
-	}
-	else {
-		expected -= '0' + 26 + 26;
-	}
 
 	/*Initilize the list of possible chars*/
 	char *CHARS="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -268,16 +287,15 @@ char network(SDL_surface *src, char mode, char reset, char expected)
 		save(wIH, wHO);
 	}
 	/*Free memory*/
-	free(inputs);
+	/*free(inputs);
 	free(wIH);
 	free(hNet);
 	free(hOut);
 	free(wHO);
 	free(net);
-	free(out);
-	free(CHARS);
+	free(out);*/
 
-	return CHARS[i];
+	return CHARS[result];
 }
 
 /*============================================================================*/
