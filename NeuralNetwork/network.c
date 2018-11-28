@@ -13,8 +13,8 @@
 /*========================= Declare global constants =========================*/
 
 #define NBIN 785		//NBINPUTS			i : 784 + bias	| 28*28 px image
-#define NBHN 30			//NBHIDDENNET		h1: 30
-#define NBHO 31			//NBHIDDENOUT		h2: 30 + bias
+#define NBHN 100		//NBHIDDENNET		h1: 30
+#define NBHO 101		//NBHIDDENOUT		h2: 30 + bias
 #define NBOU 94			//NBOUTPUTS			o : 94 (char 33 to 126)
 #define ETA 0.8			//LEARNING RATE
 
@@ -88,26 +88,28 @@ double softmaxp(double *out, int j, int i)
 void save(double *wIH, double *wHO)
 {
 	char *PATH1 = "weights_IH";
-	char *PATH2 = "weights_HO";
-
 	FILE *f1 = fopen(PATH1, "wb");
 	fwrite(wIH, sizeof(double), sizeof(wIH), f1);
+	fclose(f1);
 
+	char *PATH2 = "weights_HO";
 	FILE *f2 = fopen(PATH2, "wb");
 	fwrite(wHO, sizeof(double), sizeof(wHO), f2);
+	fclose(f2);
 }
 
 //load weigths
 void load(double *wIH, double *wHO)
 {
 	char *PATH1 = "weights_IH";
-	char *PATH2 = "weights_HO";
-
 	FILE *f1 = fopen(PATH1, "wb");
 	fread(wIH, sizeof(double), sizeof(wIH), f1);
+	fclose(f1);
 
+	char *PATH2 = "weights_HO";
 	FILE *f2 = fopen(PATH2, "wb");
 	fread(wHO, sizeof(double), sizeof(wHO), f2);
+	fclose(f2);
 }
 
 //initialize pointers
@@ -163,10 +165,11 @@ void identify(char mode, double *inputs, double *wIH, double *hNet, \
 {
 	/*========== Forward Propagation ==========*/
 	// inputs -> hidden layer
-	for(int i = 0; i < NBIN; i++) {
-		for(int h1 = 0; h1 < NBHN; h1++) {
+	for(int h1 = 0; h1 < NBHN; h1++) {
+		for(int i = 0; i < NBIN; i++) {
 			hNet[h1] += inputs[i] * wIH[i * NBHN + h1];
 		}
+		//printf("hNet %i : %g\n", h1, hNet[h1]); //DEBUG //HNET[0] = 0 WHY ???
 	}
 
 	// hidden layer activation
@@ -175,10 +178,11 @@ void identify(char mode, double *inputs, double *wIH, double *hNet, \
 	}
 
 	// hidden layer -> outputs
-	for(int h2 = 0; h2 < NBHO; h2++) {
-		for(int o = 0; o < NBOU; o++) {
+	for(int o = 0; o < NBOU; o++) {
+		for(int h2 = 0; h2 < NBHO; h2++) {
 			net[o] += hOut[h2] * wHO[h2 * NBOU + o];
 		}
+		//printf("net %i : %g\n", o, net[o]); //DEBUG //NET[0] = -NAN WHY ???
 	}
 
 	// outputs activation
@@ -239,7 +243,7 @@ char network(SDL_Surface *src, char mode, char reset, char expected)
 	double mostprob = 0.0;
 	int result = 0;
 	for(int i = 0; i < NBOU; i++) {
-		printf("%c : %g\n", i + 33, out[i]);
+		//printf("%c : %g\n", i + 33, out[i]); //DEBUG
 		if(out[i] > mostprob) {
 			mostprob = out[i];
 			result = i;
