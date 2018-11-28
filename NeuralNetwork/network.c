@@ -13,10 +13,10 @@
 /*========================= Declare global constants =========================*/
 
 #define NBIN 785		//NBINPUTS			i : 784 + bias	| 28*28 px image
-#define NBHN 784		//NBHIDDENNET		h1: 784
-#define NBHO 785		//NBHIDDENOUT		h2: 784 + bias
-#define NBOU 63			//NBOUTPUTS			o : 62  + bias	| lettersUL + digits
-#define ETA 0.1			//LEARNING RATE
+#define NBHN 30			//NBHIDDENNET		h1: 30
+#define NBHO 31			//NBHIDDENOUT		h2: 30 + bias
+#define NBOU 94			//NBOUTPUTS			o : 94 (char 33 to 126)
+#define ETA 0.8			//LEARNING RATE
 
 /*============================================================================*/
 
@@ -52,34 +52,6 @@ void freeW(weight *w)
 
 
 /*============================= Declare functions ============================*/
-/*
-//sigmoid
-double sig(double x);
-//sigmoid prime
-double sigp(double x);
-//softmax
-double softmax();
-//softmax prime
-double softmaxp();
-//save weigths
-void save(double *wIH, double *wHO);
-//load weigths
-void load(double *wIH, double *wHO);
-//initialize pointers
-void init(char reset, SDL_surface *src, double *inputs, double *wIH, \
-	double *hNet, double *hOut, double *wHO, double *net)
-//forward and backward propagation
-void identify(char mode, double *inputs, double *wIH, double *hNet, \
-	double *hOut, double *wHO, double *net, double *out, char expected);
-//main function to call | mode = (t)rain/(e)val | reset weigths = (y)es/(n)o
-char network(SDL_surface *src, char mode, char reset, char expected);
-*/
-/*============================================================================*/
-
-
-
-/*============================= Declare functions ============================*/
-/*=================================== Code ===================================*/
 
 //sigmoid
 double sig(double x)
@@ -115,30 +87,27 @@ double softmaxp(double *out, int j, int i)
 //save weigths
 void save(double *wIH, double *wHO)
 {
-	char *PATH = "weights";
-	weight *w = newW();
+	char *PATH1 = "weights_IH";
+	char *PATH2 = "weights_HO";
 
-	w->wInpHid = wIH;
-	w->wHidOut = wHO;
+	FILE *f1 = fopen(PATH1, "wb");
+	fwrite(wIH, sizeof(double), sizeof(wIH), f1);
 
-	FILE *f = fopen(PATH, "wb");
-	fwrite(w, sizeof(weight), 1, f);
-
-	freeW(w);
+	FILE *f2 = fopen(PATH2, "wb");
+	fwrite(wHO, sizeof(double), sizeof(wHO), f2);
 }
 
 //load weigths
 void load(double *wIH, double *wHO)
 {
-	char *PATH = "weights";
-	weight *w = newW();
-	FILE *f = fopen(PATH, "rb");
-	fread(w, sizeof(weight), 1, f);
+	char *PATH1 = "weights_IH";
+	char *PATH2 = "weights_HO";
 
-	*wIH = *(w->wInpHid);
-	*wHO = *(w->wHidOut);
+	FILE *f1 = fopen(PATH1, "wb");
+	fread(wIH, sizeof(double), sizeof(wIH), f1);
 
-	freeW(w);
+	FILE *f2 = fopen(PATH2, "wb");
+	fread(wHO, sizeof(double), sizeof(wHO), f2);
 }
 
 //initialize pointers
@@ -218,25 +187,22 @@ void identify(char mode, double *inputs, double *wIH, double *hNet, \
 
 	/*========== Backward Propagation =========*/
 	if(mode == 't') {
-		char *CHARS="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
 		// Output -> Hidden Layer
 		// -= dErr/dOut * dOut/dNet * dNet/dWHO * ETA
 		for(int h2 = 0; h2 < NBHO; h2++) {
 			for(int o = 0; o < NBOU; o++) {
-				wHO[h2 * NBOU + o] -= ((out[o] - ((CHARS[o] == expected) ? 1 : 0))
+				wHO[h2 * NBOU + o] -= ((out[o] - (((char)(o+33)==expected)?1:0))
 										* softmaxp(out, h2, o)
 				 						* hOut[h2] * ETA);
 			}
 		}
-
 		// Hidden layer -> Inputs
 		// -= dErr/dOut * dOut/dNet * dNet/dHOut * dHout/dHNet * dHNet/dWIH  *ETA
 		for(int i = 0; i < NBIN; i++) {
 			for(int h1 = 0; h1 < NBHN; h1++) {
 				double deltaHO = 0.0;
 				for(int o = 0; o < NBOU; o++) {
-					deltaHO += ((out[o] - ((CHARS[o] == expected) ? 1 : 0))
+					deltaHO += ((out[o] - (((char)(o+33)==expected)?1:0))
 								* softmaxp(out, h1 + 1, o)
 					 			* wHO[(h1 + 1) * NBOU + o]);
 				}
@@ -253,9 +219,6 @@ char network(SDL_Surface *src, char mode, char reset, char expected)
 	/*Initialize RNG*/
 	time_t t;
 	srand((unsigned) time(&t));
-
-	/*Initilize the list of possible chars*/
-	char *CHARS="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 	/*Declare pointers*/
 	double *inputs = (double *) malloc(sizeof(double) * NBIN);
@@ -276,6 +239,7 @@ char network(SDL_Surface *src, char mode, char reset, char expected)
 	double mostprob = 0.0;
 	int result = 0;
 	for(int i = 0; i < NBOU; i++) {
+		printf("%c : %g\n", i + 33, out[i]);
 		if(out[i] > mostprob) {
 			mostprob = out[i];
 			result = i;
@@ -295,7 +259,7 @@ char network(SDL_Surface *src, char mode, char reset, char expected)
 	free(net);
 	free(out);*/
 
-	return CHARS[result];
+	return (char)(result+33);
 }
 
 /*============================================================================*/

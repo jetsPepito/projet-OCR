@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
 #include "network.h"
@@ -10,20 +11,29 @@
 int main()
 {
     /* STRUCTURE DU DATASET :
-    *  ./dataset/char/img.png
-    *  char : [0-62] letter corresponding to the char in the array in network
-    *  img : [0-100] sample of the letter
+    *  ./dataset_print/police/char.png
+    *  police : [1-4] Arial, Calibri, Cambria, Georgia
+    *  char : [33-126] letter corresponding to the char in the array in network
     */
 
-    char *PATH = "./dataset/img.png";
+    srand(time(NULL));
 
     for (int n = 1; n <= NBTR; n++) {
+        //Select a random police and character
+        int pol = rand()%3;
+        char expected = (char)((rand()%(126-33))+33);
+        //Create the corresponding path
+        char *PATH;
+        asprintf(&PATH, "./dataset_print/%i/%i.png", pol, expected);
+        //Load the image
         SDL_Surface *img;
-        img = IMG_Load(PATH); //charger une image aleatoire
-        char expected = 'M'; //caractere correspondant
-        char id = network(img, 't', 'y', expected);
-
-        printf("Round %i: expected %c, got %c\n", n, expected, id);
+        img = IMG_Load(PATH);
+        //Call the neural network
+        char id = network(img, 't', 'n', expected);
+        //Print the results
+        printf("Round %i: police %i, expected %c, got %c\n", n, pol, expected, id);
+        free(img);
+        free(PATH);
     }
 
     return 0;
