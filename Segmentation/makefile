@@ -1,11 +1,11 @@
 ##Simple SDL mini code
 CPPFLAGS= -MMD
 CC=gcc
-CFLAGS= -Wall -Wextra -std=c99  `pkg-config --cflags sdl`
+CFLAGS= -g -Wall -Wextra -std=c99  `pkg-config --cflags sdl`
 LDFLAGS=
 LDLIBS= -lm `pkg-config --libs sdl`
 
-SRC= main.c Segmentation.c ../BasicFunctions/basic.c
+SRC= main.c Segmentation.c Histogram.c ../BasicFunctions/basic.c ../ImageTreatment/image_treatment.c
 OBJ= ${SRC:.c=.o}
 	DEP= ${SRC:.c=.d}
 

@@ -2,6 +2,8 @@
 #define SEGMENTATION_H
 
 #include <SDL/SDL.h>
-SDL_Surface* CutLine (SDL_Surface*img);
+
+SDL_Surface* Segmentation (SDL_Surface* img);
+SDL_Surface* Cut_Borders(SDL_Surface* img);
 
 #endif

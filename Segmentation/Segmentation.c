@@ -2,11 +2,13 @@
 #include <stdlib.h>
 #include <SDL/SDL.h>
 #include "../BasicFunctions/basic.h"
+#include "../ImageTreatment/image_treatment.h"
 #include "Segmentation.h"
+//#include "Type.h"
+//#include "Histogram.h"
 
 
-SDL_Surface* CutLine (SDL_Surface*img)
-
+SDL_Surface* Segmentation (SDL_Surface* img)
 {
 	int height = img -> h;
 	int width = img -> w;
@@ -49,7 +51,7 @@ SDL_Surface* CutLine (SDL_Surface*img)
 				}
 				i++;
 			}
-			lineSup = i; // no need de decreament
+			lineSup = i;
 			
 
 			for (int c = 0; c < width; c++)
@@ -81,7 +83,18 @@ SDL_Surface* CutLine (SDL_Surface*img)
 						}
 						c++;
 					}
-					colSup = c;   // no need to decreament
+					colSup = c;
+
+                    // make operation on character here
+                    
+                    SDL_Surface* character;
+                    character = SDL_CreateRGBSurface(0, colSup-colInf, lineSup-lineInf, 32, 0, 0, 0, 0);
+                    SDL_Rect rectangle = {colInf, lineInf, colSup-colInf , lineSup-lineInf};
+                    SDL_Rect* R = &rectangle;
+
+                    SDL_BlitSurface(img, R, character, NULL);
+                    character = ResizeChar(character);
+                    return character;
 
 					for (int line = lineInf; line < lineSup; line++)
 					{
@@ -101,3 +114,70 @@ SDL_Surface* CutLine (SDL_Surface*img)
 	}
 	return img;
 }
+
+// remove blank border on the image if they exist
+/*
+SDL_Surface* Cut_Borders(SDL_Surface *img)
+{
+    SDL_Surface* cutedImg;
+    SDL_Rect* rectangle = {0, 0, img -> w, img -> h};
+
+    int height = img -> h;
+    int histoX[height];
+
+    int width = img -> w;
+    int histoY[width];
+
+    Make_Histogram (img, rectangle, histoX, 0); // horizontal
+    Make_Histogram (img, rectangle, histoY, 1); // vertical
+
+    // gather 4 mark to recreate a reduced rectangle
+    int i = 0;
+    int markSupY = 0;
+
+    while (i < height && histoX[i] == 0)
+    {
+        markSupY++;
+        i++;
+    }
+    markSupY--;                         // -1 else  mark is not the good value due to the while 
+
+    i = height - 1;
+    int markInfY = height - 1;
+
+    while (i >= 0 && histoX[i] == 0)
+    {
+        markInfY--;
+        i--;
+    }
+    markInfY++;                         // +1 else mark is not the good value du to the while 
+
+    i = 0;
+    int markLeftX = 0;
+
+    while (i < width && histoY[i] == 0)
+    {
+        markLeftX++;
+        i++;
+    }
+    markLeftX--;
+
+    i =  width - 1;
+    int markRightX = width - 1;
+
+    while (i >= 0 && histoY[i] == 0)
+    {
+        markRightX--;
+        i--;
+    }
+    markRightX++;
+
+    rectangle -> x = markLeftX;
+    rectangle -> y = markSupY;
+    rectangle -> w = markRightX - markLeftX;
+    rectangle -> h = markInfY - markSupY;
+
+    SDL_BlitSurface(img, rectangle, cutedImg, NULL);
+
+    return cutedImg;
+}*/

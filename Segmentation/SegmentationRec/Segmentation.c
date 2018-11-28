@@ -16,7 +16,7 @@ DoubleInt Make_Histogram(SDL_Surface *img, Rectangle rectangle,int axis)
 
     DoubleInt list&length;
 
-    if (axis = 0)
+    if (axis == 0)
     {
         int list&length.c = (lineMax - lineMin)+1;
         int list&length.l[list&length.c];
@@ -91,6 +91,8 @@ DoubleRect Divide_Image(SDL_Surface *img, Rectangle rectangle,  int i, int axis)
             SDL_GetRGB(currentPixel, img -> format, &r, &g, &b);
             r = 100;
             currentPixel = SDL_MapRGB(img -> format, r, g, b);
+//count all pixels on every line of image
+DoubleInt Make_Histogram(SDL_Surface *img, Rectangle rectangle,int axis)
             putpixel(img, j, i, currentPixel);
         }
     }
@@ -131,7 +133,7 @@ int Checklist(DoubleInt list&length)
     int isChar = 1;
     int i = 0;
     
-    while (i < list&length.c && isChar == 0)
+    while (i < list&length.c && isChar == 1)
     {
         if (list&length.l[i] == 0)
         {
@@ -156,7 +158,7 @@ int Find_Index(DoubleInt list&length)
             markUpTemp = i;
 
             while (i < list&length.c && list&length.l[i] == 0)
-            {
+          {
                 markUpTemp = i;
             }
             
@@ -173,6 +175,8 @@ void RXY_Cut(SDL_Surface *img, Rectangle rectangle,)
     int emptyCase1 = 
 
     DoubleInt list&length =  Make_Histogram(img, rectangle, axis);
+//count all pixels on every line of image
+DoubleInt Make_Histogram(SDL_Surface *img, Rectangle rectangle,int axis)
 
     
 }
