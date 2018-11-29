@@ -5,7 +5,7 @@
 #include "../ImageTreatment/image_treatment.h"
 #include "Segmentation.h"
 //#include "Type.h"
-//#include "Histogram.h"
+#include "Histogram.h"
 
 
 SDL_Surface* Segmentation (SDL_Surface* img)
@@ -88,22 +88,14 @@ SDL_Surface* Segmentation (SDL_Surface* img)
 					colSup = c;
 
                     // make operation on character here
-                    // SDL_Surface* character;
+                    
                     character = SDL_CreateRGBSurface(0, colSup-colInf, lineSup-lineInf, 32, 0, 0, 0, 0);
                     SDL_Rect rectangle = {colInf, lineInf, colSup-colInf , lineSup-lineInf};
                     SDL_Rect* R = &rectangle;
 
                     SDL_BlitSurface(img, R, character, NULL);
-                    
-                    //character = SDL_CreateRGBSurfa:w
-                    //ce(0, lineSup-lineInf, colSup-colInf, 32, 0, 255, 0, 0);
-                    /*rectangle.x = lineInf;
-                    rectangle.y = colInf;
-                    rectangle.h = colSup-colInf;
-                    rectangle.w = lineSup-lineInf;
-                    SDL_BlitSurface(img, R, character, NULL);*/
-                    //character = ResizeChar(character);
-    //                return character;
+                    character = Cut_Borders(character);
+                    character = ResizeChar(character);
 
 					for (int line = lineInf; line < lineSup; line++)
 					{
@@ -125,7 +117,7 @@ SDL_Surface* Segmentation (SDL_Surface* img)
 
 // remove blank border on the image if they exist
 
-/*SDL_Surface* Cut_Borders(SDL_Surface *img)
+SDL_Surface* Cut_Borders(SDL_Surface *img)
 {
     SDL_Surface* cutedImg;
     SDL_Rect rectangle = {0, 0, img -> w, img -> h};
@@ -153,14 +145,14 @@ SDL_Surface* Segmentation (SDL_Surface* img)
 
     i = height - 1;
     int markInfY = height - 1;
-
+    
     while (i >= 0 && histoX[i] == 0)
     {
         markInfY--;
         i--;
     }
     markInfY++;                         // +1 else mark is not the good value du to the while 
-
+    
     i = 0;
     int markLeftX = 0;
 
@@ -181,13 +173,14 @@ SDL_Surface* Segmentation (SDL_Surface* img)
     }
     markRightX++;
 
+
     rectangle.x = markLeftX;
     rectangle.y = markSupY;
     rectangle.w = markRightX - markLeftX;
     rectangle.h = markInfY - markSupY;
 
     cutedImg = SDL_CreateRGBSurface(0, rectangle.w, rectangle.h, 32, 0, 0, 0, 0);
-    //SDL_BlitSurface(img, r, cutedImg, NULL);
+    SDL_BlitSurface(img, r, cutedImg, NULL);
 
     return cutedImg;
-}*/
+}
