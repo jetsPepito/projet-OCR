@@ -36,7 +36,7 @@ double sigp(double x)
 }
 
 //softmax
-void softmax(double net[], double out[])
+void softmax(double *net, double *out)
 {
 	double sum = 0;
 	for(int k = 0; k < NBOU; k++) {
@@ -48,42 +48,42 @@ void softmax(double net[], double out[])
 }
 
 //softmax prime
-double softmaxp(double out[], int j, int i)
+double softmaxp(double *out, int j, int i)
 {
 	return (out[i] * (((i == j) ? 1 : 0) - out[j]));
 }
 
 //save weigths
-void save(double wIH[], double wHO[])
+void save(double *wIH, double *wHO)
 {
 	char *PATH1 = "weights_IH";
 	FILE *f1 = fopen(PATH1, "wb");
-	fwrite(wIH, sizeof(double), NBIN * NBHN, f1);
+	fwrite(wIH, sizeof(double), sizeof(wIH), f1);
 	fclose(f1);
 
 	char *PATH2 = "weights_HO";
 	FILE *f2 = fopen(PATH2, "wb");
-	fwrite(wHO, sizeof(double), NBHO * NBOU, f2);
+	fwrite(wHO, sizeof(double), sizeof(wHO), f2);
 	fclose(f2);
 }
 
 //load weigths
-void load(double wIH[], double wHO[])
+void load(double *wIH, double *wHO)
 {
 	char *PATH1 = "weights_IH";
 	FILE *f1 = fopen(PATH1, "wb");
-	fread(wIH, sizeof(double), NBIN * NBHN, f1);
+	fread(wIH, sizeof(double), sizeof(wIH), f1);
 	fclose(f1);
 
 	char *PATH2 = "weights_HO";
 	FILE *f2 = fopen(PATH2, "wb");
-	fread(wHO, sizeof(double), NBHO * NBOU, f2);
+	fread(wHO, sizeof(double), sizeof(wHO), f2);
 	fclose(f2);
 }
 
 //initialize pointers
-void init(char reset, SDL_Surface *src, double inputs[], double wIH[],
-	double hNet[], double hOut[], double wHO[], double net[])
+void init(char reset, SDL_Surface *src, double *inputs, double *wIH, \
+	double *hNet, double *hOut, double *wHO, double *net)
 {
 	/*Weights*/
 	if(reset == 'y') {
@@ -129,8 +129,8 @@ void init(char reset, SDL_Surface *src, double inputs[], double wIH[],
 }
 
 //forward and backward propagation
-void identify(char mode, double inputs[], double wIH[], double hNet[],
-	double hOut[], double wHO[], double net[], double out[], char expected)
+void identify(char mode, double *inputs, double *wIH, double *hNet, \
+	double *hOut, double *wHO, double *net, double *out, char expected)
 {
 	/*========== Forward Propagation ==========*/
 	// inputs -> hidden layer
@@ -155,13 +155,20 @@ void identify(char mode, double inputs[], double wIH[], double hNet[],
 	}
 
 	// outputs activation
-	for(int o = 0; o < NBOU; o++) {
-		out[o] = sig(net[o]);
-	}
+	softmax(net, out);
 	/*=========================================*/
 
 	/*========== Backward Propagation =========*/
 	if(mode == 't') {
+		// Output -> Hidden Layer
+		// -= dErr/dOut * dOut/dNet * dNet/dWHO * ETA
+		for(int h2 = 0; h2 < NBHO; h2++) {
+			for(int o = 0; o < NBOU; o++) {
+				wHO[h2 * NBOU + o] -= ((out[o] - (((char)(o+33)==expected)?1:0))
+										* softmaxp(out, h2, o)
+				 						* hOut[h2] * ETA);
+			}
+		}
 		// Hidden layer -> Inputs
 		// -= dErr/dOut * dOut/dNet * dNet/dHOut * dHout/dHNet * dHNet/dWIH  *ETA
 		for(int i = 0; i < NBIN; i++) {
@@ -169,19 +176,10 @@ void identify(char mode, double inputs[], double wIH[], double hNet[],
 				double deltaHO = 0.0;
 				for(int o = 0; o < NBOU; o++) {
 					deltaHO += ((out[o] - (((char)(o+33)==expected)?1:0))
-								* sigp(net[o])
+								* softmaxp(out, h1 + 1, o)
 					 			* wHO[(h1 + 1) * NBOU + o]);
 				}
 				wIH[i * NBHN + h1] -= (deltaHO * sigp(hNet[h1]) * inputs[i] * ETA);
-			}
-		}
-		// Output -> Hidden Layer
-		// -= dErr/dOut * dOut/dNet * dNet/dWHO * ETA
-		for(int h2 = 0; h2 < NBHO; h2++) {
-			for(int o = 0; o < NBOU; o++) {
-				wHO[h2 * NBOU + o] -= ((out[o] - (((char)(o+33)==expected)?1:0))
-										* sigp(net[o])
-				 						* hOut[h2] * ETA);
 			}
 		}
 	}
@@ -195,14 +193,14 @@ char network(SDL_Surface *src, char mode, char reset, char expected)
 	time_t t;
 	srand((unsigned) time(&t));
 
-	/*Declare arrays*/
-	double inputs[NBIN];
-	double wIH[NBIN * NBHN];
-	double hNet[NBHN];
-	double hOut[NBHO];
-	double wHO[NBHO * NBOU];
-	double net[NBOU];
-	double out[NBOU];
+	/*Declare pointers*/
+	double *inputs = (double *) malloc(sizeof(double) * NBIN);
+	double *wIH = (double *) malloc(sizeof(double) * (NBIN * NBHN));
+	double *hNet = (double *) malloc(sizeof(double) * NBHN);
+	double *hOut = (double *) malloc(sizeof(double) * NBHO);
+	double *wHO = (double *) malloc(sizeof(double) * (NBHO * NBOU));
+	double *net = (double *) malloc(sizeof(double) * NBOU);
+	double *out = (double *) malloc(sizeof(double) * NBOU);
 
 	/*Initialize pointers*/
 	init(reset, src, inputs, wIH, hNet, hOut, wHO, net);
