@@ -28,10 +28,9 @@ int main()
 	ecran = SDL_SetVideoMode(1600, 800, 32, SDL_HWSURFACE);
 	SDL_WM_SetCaption("Chargement d'images en SDL", NULL);
 	image = SDL_LoadBMP("Lorem-Ipsum.bmp");
-    blackwhite(image);
 	//image = SDL_LoadBMP("ascii.bmp");
-	//image = IMG_Load("Alphabet.png");
-
+    blackwhite(image);
+    
 	SDL_Surface *segmentedImg;
 	segmentedImg = Segmentation(image);
     //segmentedImg = Cut_Borders(image); 
