@@ -6,7 +6,7 @@
 #include <SDL/SDL_image.h>
 #include "network.h"
 
-#define NBTR 1//00000		//NBTRAININGTURNS
+#define NBTR 10//00000		//NBTRAININGTURNS
 
 int main()
 {

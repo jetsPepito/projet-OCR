@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
-#include <SDL/SDL.h>
-#include <SDL/SDL_image.h>
 #include "../BasicFunctions/basic.h"
 #include "network.h"
 
@@ -17,35 +15,6 @@
 #define NBHO 101		//NBHIDDENOUT		h2: 30 + bias
 #define NBOU 94			//NBOUTPUTS			o : 94 (char 33 to 126)
 #define ETA 0.8			//LEARNING RATE
-
-/*============================================================================*/
-
-
-
-/*======================= Define weights data structure ======================*/
-
-typedef struct weight
-{
-	double *wInpHid;
-	double *wHidOut;
-}weight;
-
-weight *newW()
-{
-	weight *w = (weight *) malloc(sizeof(weight));
-
-	w->wInpHid = (double *) malloc(sizeof(double) * (NBIN * NBHN));
-	w->wHidOut = (double *) malloc(sizeof(double) * (NBHO * NBOU));
-
-	return w;
-}
-
-void freeW(weight *w)
-{
-	free (w->wInpHid);
-	free (w->wHidOut);
-	free (w);
-}
 
 /*============================================================================*/
 
@@ -117,19 +86,19 @@ void init(char reset, SDL_Surface *src, double *inputs, double *wIH, \
 	double *hNet, double *hOut, double *wHO, double *net)
 {
 	/*Weights*/
-	if(reset == 'n') {
-		load(wIH, wHO);
-	} else {
+	if(reset == 'y') {
 		for(int i = 0; i < NBIN; i++) {
-			for(int h1 = 1; h1 < NBHN; h1++) {
+			for(int h1 = 0; h1 < NBHN; h1++) {
 				wIH[i * NBHN + h1] = (double)rand()/RAND_MAX*2.0-1.0;
 			}
 		}
 		for(int h2 = 0; h2 < NBHO; h2++) {
-			for(int o = 1; o < NBOU; o++) {
+			for(int o = 0; o < NBOU; o++) {
 				wHO[h2 * NBOU + o] = (double)rand()/RAND_MAX*2.0-1.0;
 			}
 		}
+	} else {
+		load(wIH, wHO);
 	}
 
 	/*Inputs*/
