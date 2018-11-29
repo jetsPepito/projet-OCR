@@ -25,6 +25,7 @@ int main()
 	//quit
 	SDL_Flip(screen);
 	SDL_FreeSurface(img);
+	SDL_FreeSurface(screen);
 	SDL_Quit();
 	return 0;
 }
