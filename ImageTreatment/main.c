@@ -8,25 +8,22 @@
 int main()
 {
 	//Create everything to test SDL fonction
-	SDL_Surface *screen  = NULL, *img = NULL, *grayscal= NULL;
-	SDL_Init(SDL_INIT_VIDEO);
-	screen = SDL_SetVideoMode(1600, 800, 32, SDL_HWSURFACE);
-	SDL_WM_SetCaption("Image", NULL);
+	SDL_Surface *screen  = NULL, *img = NULL;
+	init_sdl();
 
 	//test of grayscale and medianfilter
 	img = IMG_Load("images/texte.jpg");
-	SDL_BlitSurface(img, NULL, screen, NULL);
+	screen = display_image(img);
+	wait_for_keypressed();
 	grayscale(img);
 	blackwhite(img);
-	SaveImg("grayscale.bmp", img);
+	update_surface(screen,img);
+		
 	wait_for_keypressed();
-	grayscal= IMG_Load("grayscale.bmp");
-	medianfilter(grayscal);
-	SaveImg("grayscalesansbruit.bmp" ,grayscal );
+	SaveImg("traitement.bmp" ,img );
 
 	//quit
 	SDL_Flip(screen);
-	wait_for_keypressed();
 	SDL_FreeSurface(img);
 	SDL_Quit();
 	return 0;
