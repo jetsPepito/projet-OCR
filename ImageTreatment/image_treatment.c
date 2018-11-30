@@ -80,8 +80,8 @@ void grayscale(SDL_Surface*img){
 /* Resize the SDL surface of the char in 28x28 for the NeuralNetwork*/
 SDL_Surface* ResizeChar(SDL_Surface *imgchar){
 	SDL_Surface *resize_char = SDL_CreateRGBSurface(SDL_HWSURFACE,
-			28,
-			28,
+			10,
+			10,
 			imgchar->format->BitsPerPixel,0,0,0,0);
 	SDL_SoftStretch(imgchar, NULL, resize_char, NULL);
 	return resize_char;
