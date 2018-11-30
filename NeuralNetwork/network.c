@@ -11,10 +11,11 @@
 /*========================= Declare global constants =========================*/
 
 #define NBIN 785		//NBINPUTS			i : 784 + bias	| 28*28 px image
-#define NBHN 100		//NBHIDDENNET		h1: 30
-#define NBHO 101		//NBHIDDENOUT		h2: 30 + bias
-#define NBOU 94			//NBOUTPUTS			o : 94 (char 33 to 126)
-#define ETA 0.8			//LEARNING RATE
+#define NBHN 70			//NBHIDDENNET		h1:
+#define NBHO 71			//NBHIDDENOUT		h2: h1 + bias
+#define NBOU 68			//NBOUTPUTS			o : letters, digits, a few other
+#define ETA 0.5			//LEARNING RATE
+#define NBTR 100		//NBTRAININGTURNS
 
 /*============================================================================*/
 
@@ -36,21 +37,26 @@ double sigp(double x)
 }
 
 //softmax
-void softmax(double net[], double out[])
+double softmax(double net[], double out[], double maxnet)
 {
 	double sum = 0;
 	for(int k = 0; k < NBOU; k++) {
-		sum += exp(net[k]);
+		sum += exp(net[k] - maxnet + maxnet);
 	}
 	for(int j = 0; j < NBOU; j++) {
-		out[j] = exp(net[j]) / sum;
+		out[j] = exp(net[j] - maxnet + maxnet) / sum;
 	}
+	return sum;
 }
 
 //softmax prime
-double softmaxp(double out[], int j, int i)
+void softmaxp(double net[], double netprime[], double sum, double maxnet)
 {
-	return (out[i] * (((i == j) ? 1 : 0) - out[j]));
+	for(int x = 0; x < NBOU; x++) {
+		//double ex = exp(net[x]) - maxnet + maxnet;
+		//netprime[x] = (sum - ex) * ex / sum * sum;
+		netprime[x] = (exp(net[x]-maxnet)/sum) * (1 - (exp(net[x]-maxnet)/sum));
+	}
 }
 
 //save weigths
@@ -83,7 +89,7 @@ void load(double wIH[], double wHO[])
 
 //initialize pointers
 void init(char reset, SDL_Surface *src, double inputs[], double wIH[],
-	double hNet[], double hOut[], double wHO[], double net[])
+	double hNet[], double hOut[], double wHO[], double net[], char mode)
 {
 	/*Weights*/
 	if(reset == 'y') {
@@ -98,7 +104,9 @@ void init(char reset, SDL_Surface *src, double inputs[], double wIH[],
 			}
 		}
 	} else {
-		load(wIH, wHO);
+		if(mode != 't') {
+			load(wIH, wHO);
+		}
 	}
 
 	/*Inputs*/
@@ -138,7 +146,6 @@ void identify(char mode, double inputs[], double wIH[], double hNet[],
 		for(int i = 0; i < NBIN; i++) {
 			hNet[h1] += inputs[i] * wIH[i * NBHN + h1];
 		}
-		//printf("hNet %i : %g\n", h1, hNet[h1]); //DEBUG //HNET[0] = 0 WHY ???
 	}
 
 	// hidden layer activation
@@ -151,49 +158,62 @@ void identify(char mode, double inputs[], double wIH[], double hNet[],
 		for(int h2 = 0; h2 < NBHO; h2++) {
 			net[o] += hOut[h2] * wHO[h2 * NBOU + o];
 		}
-		//printf("net %i : %g\n", o, net[o]); //DEBUG //NET[0] = -NAN WHY ???
+	}
+
+	//max of net output array
+	double maxnet = net[0];
+	for (int i = 1; i < NBOU; i++) {
+		if(net[i] > maxnet) {
+			maxnet = net[i];
+		}
 	}
 
 	// outputs activation
-	for(int o = 0; o < NBOU; o++) {
-		out[o] = sig(net[o]);
-	}
+	double sum = softmax(net, out, maxnet);
+
+	//DEBUG
+	//printf("%g, %g, %g, %g, %g, %g, %g\n", inputs[0], wIH[0], hNet[0], hOut[1], wHO[0], net[0], out[0]);
 	/*=========================================*/
 
 	/*========== Backward Propagation =========*/
+	double netprime[NBOU];
+	softmaxp(net, netprime, sum, maxnet);
+
 	if(mode == 't') {
-		// Hidden layer -> Inputs
-		// -= dErr/dOut * dOut/dNet * dNet/dHOut * dHout/dHNet * dHNet/dWIH  *ETA
-		for(int i = 0; i < NBIN; i++) {
-			for(int h1 = 0; h1 < NBHN; h1++) {
-				double deltaHO = 0.0;
-				for(int o = 0; o < NBOU; o++) {
-					deltaHO += ((out[o] - (((char)(o+33)==expected)?1:0))
-								* sigp(net[o])
-					 			* wHO[(h1 + 1) * NBOU + o]);
+		for(int o = 0; o < NBOU; o++) {
+			for(int h = 0; h < NBHN; h++) {
+				for(int i = 0; i < NBIN; i++) {
+					//wIH
+					double deltaIH = (out[o] - (((char)o==expected)?1:0))
+									* netprime[o]
+									* wHO[(h + 1) * NBOU + o]
+									* sigp(hNet[h])
+									* inputs[i];
+					wIH[i * NBHN + h] -= deltaIH * ETA;
 				}
-				wIH[i * NBHN + h1] -= (deltaHO * sigp(hNet[h1]) * inputs[i] * ETA);
+				//wHO
+				double deltaHO = (out[o] - (((char)o==expected)?1:0))
+								* netprime[o]
+								* hOut[h + 1];
+				wHO[(h + 1) * NBOU + o] -= deltaHO * ETA;
 			}
 		}
-		// Output -> Hidden Layer
-		// -= dErr/dOut * dOut/dNet * dNet/dWHO * ETA
-		for(int h2 = 0; h2 < NBHO; h2++) {
-			for(int o = 0; o < NBOU; o++) {
-				wHO[h2 * NBOU + o] -= ((out[o] - (((char)(o+33)==expected)?1:0))
-										* sigp(net[o])
-				 						* hOut[h2] * ETA);
-			}
+		//bias wHO
+		for(int o = 0; o < NBOU; o++) {
+			double deltaHO = (out[o] - (((char)o==expected)?1:0))
+							* netprime[o]
+							* hOut[0];
+			wHO[o] -= deltaHO * ETA;
 		}
 	}
 	/*=========================================*/
 }
 
-//main function to call | mode = (t)rain/eval | reset weigths = (y)es/no
-char network(SDL_Surface *src, char mode, char reset, char expected)
+//main function to call | mode = (t)rain/eval
+char network(SDL_Surface *src, char mode)
 {
 	/*Initialize RNG*/
-	time_t t;
-	srand((unsigned) time(&t));
+	srand(time(NULL));
 
 	/*Declare arrays*/
 	double inputs[NBIN];
@@ -204,37 +224,82 @@ char network(SDL_Surface *src, char mode, char reset, char expected)
 	double net[NBOU];
 	double out[NBOU];
 
-	/*Initialize pointers*/
-	init(reset, src, inputs, wIH, hNet, hOut, wHO, net);
+	//Training
+	if(mode == 't'){
+	    char expected = 0;
+	    for (int n = 1; n <= NBTR; n++) {
+	        //Select a random character
+	        char rnd = (char)(rand()%67);
+	        while (rnd == expected) {
+	            rnd = (char)(rand()%67);
+	        }
+	        expected = rnd;
 
-	/*Propagate*/
-	identify(mode, inputs, wIH, hNet, hOut, wHO, net, out, expected);
+	        //Create the corresponding path
+	        char *PATH;
+	        asprintf(&PATH, "./dataset_print/arial/%i.png", expected);
 
-	/*Identify the character*/
-	double mostprob = 0.0;
-	int result = 0;
-	for(int i = 0; i < NBOU; i++) {
-		//printf("%c : %g\n", i + 33, out[i]); //DEBUG
-		if(out[i] > mostprob) {
-			mostprob = out[i];
-			result = i;
-		}
-	}
+	        //Load the image
+	        SDL_Surface *img;
+	        img = IMG_Load(PATH);
 
-	/*Save the corrected weights*/
-	if(mode == 't') {
+			/*Initialize pointers*/
+				//reset weights on first turn
+			init((n == 1 ? 'y' : 'n'), img, inputs, wIH, hNet, hOut, wHO, net, 't');
+
+	       	/*Propagate*/
+	   		identify('t', inputs, wIH, hNet, hOut, wHO, net, out, expected);
+
+	   		/*Identify the character*/
+	   		double mostprob = 0.0;
+	   		int result = 0;
+	   		for(int i = 0; i < NBOU; i++) {
+	   			if(out[i] > mostprob) {
+	   				mostprob = out[i];
+	   				result = i;
+	   			}
+	   		}
+			result += 0; //so it compiles
+	        //Print the results
+	        //printf("Training %4i: expected %2i, got %2i\n", n, expected, result);
+	        free(img);
+	        free(PATH);
+	    }
 		save(wIH, wHO);
+		return 0;
 	}
-	/*Free memory*/
-	/*free(inputs);
-	free(wIH);
-	free(hNet);
-	free(hOut);
-	free(wHO);
-	free(net);
-	free(out);*/
+	else {
+		/*Initialize pointers*/
+			//do not reset weights
+		init('n', src, inputs, wIH, hNet, hOut, wHO, net, mode);
 
-	return (char)(result+33);
+		/*Propagate*/
+		identify(mode, inputs, wIH, hNet, hOut, wHO, net, out, 0);
+
+		/*Identify the character*/
+		double mostprob = 0.0;
+		int result = 0;
+		for(int i = 0; i < NBOU; i++) {
+			if(out[i] > mostprob) {
+				mostprob = out[i];
+				result = i;
+			}
+		}
+
+		//adapt the character
+        char i;
+        if(result >= 0 && result <= 9) {i = result + 48;} //digits
+        else if(result >= 10 && result <= 35) {i = result + 55;} //uppercase
+        else if(result >= 36 && result <= 61) {i = result + 61;} //lowercase
+        else if(result == 62) {i = 33;} // !
+        else if(result == 63) {i = 39;} // '
+        else if(result == 64) {i = 44;} // ,
+        else if(result == 65) {i = 46;} // .
+        else if(result == 66) {i = 58;} // :
+        else if(result == 67) {i = 63;} // ?
+
+		return i;
+	}
 }
 
 /*============================================================================*/

@@ -6,13 +6,10 @@
 
 /* Params:
     -*src: the image of the character, 28*28 pixels
-    -mode: 't' for training, anything else for evaluation (USE 'e')
-    -reset: 'y' for yes (clears the saves), anything else for no (USE 'n')
-    -expected: the expected character for training (USE '0')
+    -mode: 't' for training, 'e' evaluation (USE 'e')
    Returns:
     -type char: the identified character from the image
-   DO NOT RESET THE WEIGHTS IN ANY CIRCUMSTANCE !
 */
-char network(SDL_Surface *src, char mode, char reset, char expected);
+char network(SDL_Surface *src, char mode);
 
 #endif
