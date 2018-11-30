@@ -10,10 +10,10 @@
 
 /*========================= Declare global constants =========================*/
 
-#define NBIN 785		//NBINPUTS			i : 784 + bias	| 28*28 px image
-#define NBHN 425		//NBHIDDENNET		h1:
-#define NBHO 426		//NBHIDDENOUT		h2: h1 + bias
-#define NBOU 68			//NBOUTPUTS			o : letters, digits, a few other
+#define NBIN 101		//NBINPUTS			i : 100 + bias	| 10*10 px image
+#define NBHN 71			//NBHIDDENNET		h1:
+#define NBHO 72			//NBHIDDENOUT		h2: h1 + bias
+#define NBOU 58			//NBOUTPUTS			o : letters + 8 special chars
 #define ETA 0.025		//LEARNING RATE
 #define NBTR 1000		//NBTRAININGTURNS
 
@@ -246,9 +246,9 @@ char network(SDL_Surface *src, char mode)
 	    char expected = 0;
 	    for (int n = 1; n <= NBTR; n++) {
 	        //Select a random character
-	        char rnd = (char)(rand()%67);
+	        char rnd = (char)(rand()%57);
 	        while (rnd == expected) {
-	            rnd = (char)(rand()%67);
+	            rnd = (char)(rand()%57);
 	        }
 	        expected = rnd;
 
@@ -305,15 +305,14 @@ char network(SDL_Surface *src, char mode)
 
 		//adapt the character
         char i;
-        if(result >= 0 && result <= 9) {i = result + 48;} //digits
-        else if(result >= 10 && result <= 35) {i = result + 55;} //uppercase
-        else if(result >= 36 && result <= 61) {i = result + 61;} //lowercase
-        else if(result == 62) {i = 33;} // !
-        else if(result == 63) {i = 39;} // '
-        else if(result == 64) {i = 44;} // ,
-        else if(result == 65) {i = 46;} // .
-        else if(result == 66) {i = 58;} // :
-        else if(result == 67) {i = 63;} // ?
+        else if(result >= 0 && result <= 25) {i = result + 65;} //uppercase
+        else if(result >= 26 && result <= 51) {i = result + 71;} //lowercase
+        else if(result == 52) {i = 33;} // !
+        else if(result == 53) {i = 39;} // '
+        else if(result == 54) {i = 44;} // ,
+        else if(result == 55) {i = 46;} // .
+        else if(result == 56) {i = 58;} // :
+        else if(result == 57) {i = 63;} // ?
 
 		return i;
 	}

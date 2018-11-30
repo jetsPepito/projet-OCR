@@ -1,4 +1,0 @@
-0 = arial
-1 = calibri
-2 = cambria
-3 = georgia

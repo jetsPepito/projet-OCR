@@ -16,18 +16,17 @@ int main()
 
     double success_rate = 0;
     //Post-training test
-    for (int j = 0; j < 68; j++) {
+    for (int j = 0; j < 58; j++) {
         //adapt the character
         char i;
-        if(j >= 0 && j <= 9) {i = j + 48;} //digits
-        else if(j >= 10 && j <= 35) {i = j + 55;} //uppercase
-        else if(j >= 36 && j <= 61) {i = j + 61;} //lowercase
-        else if(j == 62) {i = 33;} // !
-        else if(j == 63) {i = 39;} // '
-        else if(j == 64) {i = 44;} // ,
-        else if(j == 65) {i = 46;} // .
-        else if(j == 66) {i = 58;} // :
-        else if(j == 67) {i = 63;} // ?
+        else if(j >= 0 && j <= 25) {i = j + 65;} //uppercase
+        else if(j >= 26 && j <= 51) {i = j + 71;} //lowercase
+        else if(j == 52) {i = 33;} // !
+        else if(j == 53) {i = 39;} // '
+        else if(j == 54) {i = 44;} // ,
+        else if(j == 55) {i = 46;} // .
+        else if(j == 56) {i = 58;} // :
+        else if(j == 57) {i = 63;} // ?
 
         //Create the path
         char *PATH;
@@ -46,7 +45,7 @@ int main()
         free(img);
         free(PATH);
     }
-    printf("Success rate : %g\n", (success_rate / 90));
+    printf("Success rate : %g\n", (success_rate / 58));
 
     return 0;
 }
