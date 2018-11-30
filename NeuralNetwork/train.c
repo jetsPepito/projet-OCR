@@ -41,6 +41,7 @@ int main()
             success_rate++;
         }
         //Print the results
+        id += 1 - 1; //so it compiles
         printf("Test %i: expected %c, got %c\n", j, i, id);
         free(img);
         free(PATH);

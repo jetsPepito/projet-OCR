@@ -11,11 +11,11 @@
 /*========================= Declare global constants =========================*/
 
 #define NBIN 785		//NBINPUTS			i : 784 + bias	| 28*28 px image
-#define NBHN 70			//NBHIDDENNET		h1:
-#define NBHO 71			//NBHIDDENOUT		h2: h1 + bias
+#define NBHN 425		//NBHIDDENNET		h1:
+#define NBHO 426		//NBHIDDENOUT		h2: h1 + bias
 #define NBOU 68			//NBOUTPUTS			o : letters, digits, a few other
-#define ETA 0.5			//LEARNING RATE
-#define NBTR 100		//NBTRAININGTURNS
+#define ETA 0.025		//LEARNING RATE
+#define NBTR 1000		//NBTRAININGTURNS
 
 /*============================================================================*/
 
@@ -28,37 +28,34 @@ double sig(double x)
 {
 	return (1 / (1 + exp(-x)));
 }
-
+/*
 //sigmoid prime
-double sigp(double x)
+double sigp(double sigx) //derivative of sig(x) in function of sig(x)
 {
-	double sigx = sig(x);
 	return (sigx * (1 - sigx));
 }
-
+*/ /*
 //softmax
 double softmax(double net[], double out[], double maxnet)
 {
 	double sum = 0;
 	for(int k = 0; k < NBOU; k++) {
-		sum += exp(net[k] - maxnet + maxnet);
+		sum += exp(net[k] - maxnet);
 	}
 	for(int j = 0; j < NBOU; j++) {
-		out[j] = exp(net[j] - maxnet + maxnet) / sum;
+		out[j] = exp(net[j] - maxnet) / sum;
 	}
 	return sum;
 }
-
+*/ /*
 //softmax prime
-void softmaxp(double net[], double netprime[], double sum, double maxnet)
+void softmaxp(double net[], double sum, double maxnet, double netprime[])
 {
-	for(int x = 0; x < NBOU; x++) {
-		//double ex = exp(net[x]) - maxnet + maxnet;
-		//netprime[x] = (sum - ex) * ex / sum * sum;
-		netprime[x] = (exp(net[x]-maxnet)/sum) * (1 - (exp(net[x]-maxnet)/sum));
+	for(int i = 0; i < NBOU; i++) {
+		netprime[i] = (exp(net[i]-maxnet)*(sum-exp(net[i]-maxnet)))/(sum*sum);
 	}
 }
-
+*/
 //save weigths
 void save(double wIH[], double wHO[])
 {
@@ -158,8 +155,11 @@ void identify(char mode, double inputs[], double wIH[], double hNet[],
 		for(int h2 = 0; h2 < NBHO; h2++) {
 			net[o] += hOut[h2] * wHO[h2 * NBOU + o];
 		}
+		// outputs activation
+		out[o] = sig(net[o]);
+		//printf("%g\n", net[o]); //DEBUG
 	}
-
+	/*
 	//max of net output array
 	double maxnet = net[0];
 	for (int i = 1; i < NBOU; i++) {
@@ -167,45 +167,62 @@ void identify(char mode, double inputs[], double wIH[], double hNet[],
 			maxnet = net[i];
 		}
 	}
-
+	*/
 	// outputs activation
-	double sum = softmax(net, out, maxnet);
+	//double sum = softmax(net, out, maxnet);
 
 	//DEBUG
 	//printf("%g, %g, %g, %g, %g, %g, %g\n", inputs[0], wIH[0], hNet[0], hOut[1], wHO[0], net[0], out[0]);
 	/*=========================================*/
 
 	/*========== Backward Propagation =========*/
-	double netprime[NBOU];
-	softmaxp(net, netprime, sum, maxnet);
-
+	//mode internet
 	if(mode == 't') {
-		for(int o = 0; o < NBOU; o++) {
-			for(int h = 0; h < NBHN; h++) {
-				for(int i = 0; i < NBIN; i++) {
-					//wIH
-					double deltaIH = (out[o] - (((char)o==expected)?1:0))
-									* netprime[o]
-									* wHO[(h + 1) * NBOU + o]
-									* sigp(hNet[h])
-									* inputs[i];
-					wIH[i * NBHN + h] -= deltaIH * ETA;
+		//hidden layer -> input
+		for(int i = 0; i < NBIN; i++) {
+			for(int h1 = 0; h1 < NBHN; h1++) {
+				double dEdHO = 0.0;
+				for(int o = 0; o < NBOU; o++) {
+					//hidden layer -> input
+					dEdHO += ( (-((o == expected ? 1 : 0) - out[o]))
+					 			* out[o] * (1 - out[o])
+								* wHO[(h1 + 1) * NBOU + o] );
+					//output -> hidden layer
+					wHO[(h1 + 1) * NBOU + o] -= ( (-((o==expected?1:0)-out[o]))
+											* out[o] * (1 - out[o])
+											* hOut[h1 + 1]
+											* ETA );
 				}
-				//wHO
-				double deltaHO = (out[o] - (((char)o==expected)?1:0))
-								* netprime[o]
-								* hOut[h + 1];
-				wHO[(h + 1) * NBOU + o] -= deltaHO * ETA;
+				//hidden layer -> input
+				wIH[i * NBHN + h1] -= ( dEdHO
+									* hOut[h1 + 1] * (1 - hOut[h1 + 1])
+									* inputs[i]
+									* ETA );
 			}
 		}
-		//bias wHO
+		//output -> hidden layer (bias)
 		for(int o = 0; o < NBOU; o++) {
-			double deltaHO = (out[o] - (((char)o==expected)?1:0))
-							* netprime[o]
-							* hOut[0];
-			wHO[o] -= deltaHO * ETA;
+			wHO[o] -= ( (-((o == expected ? 1 : 0) - out[o]))
+						* out[o] * (1 - out[o])
+						* ETA );
 		}
 	}
+	/*//mode sander
+	if(mode == 't') {
+		double outprime = (exp(net[expected] - maxnet)
+						* (sum - exp(net[expected] - maxnet))) / (sum*sum);
+
+		//correct wHO bias
+		double deltaHObias = ((-1)/out[expected]) * outprime;
+		wHO[expected] -= deltaHObias * ETA;
+		//correct wHO weights
+		for(int h2 = 1; h2 < (NBHO*NBOU); h2++) {
+			wHO[h2 * NBOU + expected] = deltaHObias * hOut[h2] * ETA;
+		}
+
+		//missing: wIH correction
+	}
+	*/
 	/*=========================================*/
 }
 
@@ -245,7 +262,7 @@ char network(SDL_Surface *src, char mode)
 
 			/*Initialize pointers*/
 				//reset weights on first turn
-			init((n == 1 ? 'y' : 'n'), img, inputs, wIH, hNet, hOut, wHO, net, 't');
+			init((n==1?'y':'n'), img, inputs, wIH, hNet, hOut, wHO, net, 't');
 
 	       	/*Propagate*/
 	   		identify('t', inputs, wIH, hNet, hOut, wHO, net, out, expected);
@@ -261,7 +278,7 @@ char network(SDL_Surface *src, char mode)
 	   		}
 			result += 0; //so it compiles
 	        //Print the results
-	        //printf("Training %4i: expected %2i, got %2i\n", n, expected, result);
+	        //printf("Training %4i: expected %2i, got %2i\n",n,expected,result);
 	        free(img);
 	        free(PATH);
 	    }
