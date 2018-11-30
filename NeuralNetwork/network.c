@@ -112,11 +112,11 @@ void init(char reset, SDL_Surface *src, double inputs[], double wIH[],
 	Uint8 r;
 	Uint8 g;
 	Uint8 b;
-	for(int x = 0; x < 28; x++) {
-		for(int y = 0; y < 28; y++) {
+	for(int x = 0; x < 10; x++) {
+		for(int y = 0; y < 10; y++) {
 			px = getpixel(src, x, y);
 			SDL_GetRGB(px, src->format, &r, &g, &b);
-			inputs[x * 28 + y + 1] = (r == 255) ? 0.0 : 1.0; // b = 1, w = 0
+			inputs[x * 10 + y + 1] = (r == 255) ? 0.0 : 1.0; // b = 1, w = 0
 		}
 	}
 
