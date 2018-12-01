@@ -12,11 +12,12 @@ int main()
     */
 
     //Training
-    network(NULL, 't');
+    train(2000);
 
+    //Evaluation
     double success_rate = 0;
-    //Post-training test
-    for (int j = 0; j < 52; j++) {
+    for (int j = 0; j < 52; j++)
+    {
         //adapt the character
         char i;
         if(j >= 0 && j <= 25) {i = j + 65;} //uppercase
@@ -25,22 +26,29 @@ int main()
         //Create the path
         char *PATH;
         asprintf(&PATH, "./dataset_print/arial_2/%i.bmp", j);
+
         //Load the image
         SDL_Surface *img;
         img = IMG_Load(PATH);
+
         //Call the neural network
         printf("Test %i:\n", j);
-        char id = network(img, 'e');
+        char id = network(img);
+
+        //Check for success rate
         if(id == (char)i) {
             success_rate++;
         }
+
         //Print the results
-        id += 1 - 1; //so it compiles
-        printf("expected %c, got %c\n", i, id);
-        free(img);
+        printf("\texpected %c, got %c\n", i, id);
+
+        SDL_FreeSurface(img);
         free(PATH);
     }
-    printf("Success rate : %g\n", (success_rate / 58));
+
+    //Print success rate
+    printf("Success rate : %g\n", (success_rate / 52));
 
     return 0;
 }
