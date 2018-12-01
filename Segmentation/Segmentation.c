@@ -267,7 +267,7 @@ void SaveSegChar (SDL_Surface* img, char* path)
 
                     char* iterator;
                     asprintf(&iterator, "%d", iter);
-                    asprintf(&iterator, "%s.png", iterator);
+                    asprintf(&iterator, "%s.bmp", iterator);
                     asprintf(&iterator, "%s%s", path, iterator);
                     printf("%s\n", iterator);
 
