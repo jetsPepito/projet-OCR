@@ -22,18 +22,21 @@ void pause()
 
 int main()
 {
-	SDL_Surface *ecran = NULL, *image = NULL;
+    SDL_Surface *ecran = NULL, *image = NULL;
 	SDL_Init(SDL_INIT_VIDEO);
+    char* path = "../NeuralNetwork/dataset_print/arial_2/";
 
 	ecran = SDL_SetVideoMode(1600, 800, 32, SDL_HWSURFACE);
 	SDL_WM_SetCaption("Chargement d'images en SDL", NULL);
-	image = SDL_LoadBMP("Lorem-Ipsum.bmp");
+	//image = SDL_LoadBMP("Lorem-Ipsum.bmp");
 	//image = SDL_LoadBMP("ascii.bmp");
+    image = IMG_Load("../NeuralNetwork/dataset_print/arial_2/dataset.png");
     blackwhite(image);
     
 	SDL_Surface *segmentedImg;
-	segmentedImg = Segmentation(image);
-    //segmentedImg = Cut_Borders(image); 
+	//segmentedImg = Segmentation(image);
+    //segmentedImg = Cut_Borders(image);
+    SaveSegChar (image, path);
 	SDL_BlitSurface(segmentedImg, NULL, ecran, NULL);
 	SDL_Flip(ecran);
 	pause();

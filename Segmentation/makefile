@@ -3,9 +3,9 @@ CPPFLAGS= -MMD
 CC=gcc
 CFLAGS= -g -Wall -Wextra -std=c99  `pkg-config --cflags sdl`
 LDFLAGS=
-LDLIBS= -lm `pkg-config --libs sdl`
+LDLIBS= -lm `pkg-config --libs sdl` -lSDL_image -lm
 
-SRC= main.c Segmentation.c Histogram.c ../BasicFunctions/basic.c ../ImageTreatment/image_treatment.c
+SRC= main.c Segmentation.c Histogram.c ../BasicFunctions/basic.c ../ImageTreatment/image_treatment.c ../ImageTreatment/sdl.c
 OBJ= ${SRC:.c=.o}
 	DEP= ${SRC:.c=.d}
 
