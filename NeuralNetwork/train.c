@@ -24,7 +24,7 @@ int main()
 
         //Create the path
         char *PATH;
-        asprintf(&PATH, "./dataset_print/arial_2/%i.png", j);
+        asprintf(&PATH, "./dataset_print/arial_2/%i.bmp", j);
         //Load the image
         SDL_Surface *img;
         img = IMG_Load(PATH);

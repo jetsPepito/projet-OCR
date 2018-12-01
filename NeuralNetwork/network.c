@@ -11,10 +11,10 @@
 /*========================= Declare global constants =========================*/
 
 #define NBIN 101		//NBINPUTS			i : 100 + bias	| 10*10 px image
-#define NBHN 71			//NBHIDDENNET		h1:
-#define NBHO 72			//NBHIDDENOUT		h2: h1 + bias
+#define NBHN 64			//NBHIDDENNET		h1:
+#define NBHO 65			//NBHIDDENOUT		h2: h1 + bias
 #define NBOU 52			//NBOUTPUTS			o : letters
-#define ETA 0.025		//LEARNING RATE
+#define ETA 0.25		//LEARNING RATE
 #define NBTR 1000		//NBTRAININGTURNS
 
 /*============================================================================*/
@@ -34,7 +34,7 @@ double sigp(double sigx) //derivative of sig(x) in function of sig(x)
 {
 	return (sigx * (1 - sigx));
 }
-*/ /*
+*/
 //softmax
 double softmax(double net[], double out[], double maxnet)
 {
@@ -47,7 +47,7 @@ double softmax(double net[], double out[], double maxnet)
 	}
 	return sum;
 }
-*/ /*
+/*
 //softmax prime
 void softmaxp(double net[], double sum, double maxnet, double netprime[])
 {
@@ -156,10 +156,10 @@ void identify(char mode, double inputs[], double wIH[], double hNet[],
 			net[o] += hOut[h2] * wHO[h2 * NBOU + o];
 		}
 		// outputs activation
-		out[o] = sig(net[o]);
-		//printf("%g\n", net[o]); //DEBUG
+		//out[o] = sig(net[o]);
 	}
-	/*
+	//printf("%g\n", net[0]); //DEBUG
+
 	//max of net output array
 	double maxnet = net[0];
 	for (int i = 1; i < NBOU; i++) {
@@ -167,12 +167,13 @@ void identify(char mode, double inputs[], double wIH[], double hNet[],
 			maxnet = net[i];
 		}
 	}
-	*/
+
 	// outputs activation
-	//double sum = softmax(net, out, maxnet);
+	double sum = softmax(net, out, maxnet);
+	sum = sum;
 
 	//DEBUG
-	//printf("%g, %g, %g, %g, %g, %g, %g\n", inputs[0], wIH[0], hNet[0], hOut[1], wHO[0], net[0], out[0]);
+	printf("%g, %g, %g, %g, %g, %g, %g\n", inputs[1], wIH[1], hNet[1], hOut[1], wHO[1], net[1], out[1]);
 	/*=========================================*/
 
 	/*========== Backward Propagation =========*/
@@ -254,7 +255,7 @@ char network(SDL_Surface *src, char mode)
 
 	        //Create the corresponding path
 	        char *PATH;
-	        asprintf(&PATH, "./dataset_print/arial_2/%i.png", expected);
+	        asprintf(&PATH, "./dataset_print/arial_2/%i.bmp", expected);
 
 	        //Load the image
 	        SDL_Surface *img;
