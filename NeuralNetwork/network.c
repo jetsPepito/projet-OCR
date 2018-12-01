@@ -10,12 +10,13 @@
 
 /*========================= Declare global constants =========================*/
 
-#define NBIN 101		//NBINPUTS			i : 100 + bias	| 10*10 px image
-#define NBHN 64			//NBHIDDENNET		h1:
-#define NBHO 65			//NBHIDDENOUT		h2: h1 + bias
-#define NBOU 52			//NBOUTPUTS			o : letters
-#define ETA 0.25		//LEARNING RATE
-#define NBTR 1000		//NBTRAININGTURNS
+#define SIZE 10				//IMG SIZE			size : 10 (x 10) px
+#define NBIN 101			//NBINPUTS			i : size x size + bias
+#define NBHN 64				//NBHIDDENNET		h1:
+#define NBHO 65				//NBHIDDENOUT		h2: h1 + bias
+#define NBOU 52				//NBOUTPUTS			o : letters
+#define ETA 0.25			//LEARNING RATE
+#define NBTR 1000			//NBTRAININGTURNS
 
 /*============================================================================*/
 
@@ -38,7 +39,7 @@ double sigp(double sigx) //derivative of sig(x) in function of sig(x)
 //softmax
 double softmax(double net[], double out[], double maxnet)
 {
-	double sum = 0;
+	double sum = 0.0;
 	for(int k = 0; k < NBOU; k++) {
 		sum += exp(net[k] - maxnet);
 	}
@@ -88,35 +89,17 @@ void load(double wIH[], double wHO[])
 void init(char reset, SDL_Surface *src, double inputs[], double wIH[],
 	double hNet[], double hOut[], double wHO[], double net[], char mode)
 {
-	/*Weights*/
-	if(reset == 'y') {
-		for(int i = 0; i < NBIN; i++) {
-			for(int h1 = 0; h1 < NBHN; h1++) {
-				wIH[i * NBHN + h1] = (double)rand()/RAND_MAX*2.0-1.0;
-			}
-		}
-		for(int h2 = 0; h2 < NBHO; h2++) {
-			for(int o = 0; o < NBOU; o++) {
-				wHO[h2 * NBOU + o] = (double)rand()/RAND_MAX*2.0-1.0;
-			}
-		}
-	} else {
-		if(mode != 't') {
-			load(wIH, wHO);
-		}
-	}
-
 	/*Inputs*/
 	inputs[0] = 1.0; // bias
 	Uint32 px;
 	Uint8 r;
 	Uint8 g;
 	Uint8 b;
-	for(int x = 0; x < 10; x++) {
-		for(int y = 0; y < 10; y++) {
+	for(int x = 0; x < SIZE; x++) {
+		for(int y = 0; y < SIZE; y++) {
 			px = getpixel(src, x, y);
 			SDL_GetRGB(px, src->format, &r, &g, &b);
-			inputs[x * 10 + y + 1] = (r == 255) ? 0.0 : 1.0; // b = 1, w = 0
+			inputs[x * SIZE + (y + 1)] = ((r == 255) ? 0.0 : 1.0); // b=1, w=0
 		}
 	}
 
@@ -130,7 +113,24 @@ void init(char reset, SDL_Surface *src, double inputs[], double wIH[],
 	for(int o = 0; o < NBOU; o++) {
 		net[o] = 0.0;
 	}
-
+	
+	/*Weights*/
+	if(reset == 'y') {
+		for(int i = 0; i < NBIN; i++) {
+			for(int h1 = 0; h1 < NBHN; h1++) {
+				wIH[i * NBHN + h1] = (double)rand()/RAND_MAX*2.0-1.0;
+			}
+		}
+		for(int h2 = 0; h2 < NBHO; h2++) {
+			for(int o = 0; o < NBOU; o++) {
+				wHO[h2 * NBOU + o] = (double)rand()/RAND_MAX*2.0-1.0;
+			}
+		}
+	} else {
+		if(mode == 'e') {
+			load(wIH, wHO);
+		}
+	}
 }
 
 //forward and backward propagation
@@ -177,7 +177,7 @@ void identify(char mode, double inputs[], double wIH[], double hNet[],
 	/*=========================================*/
 
 	/*========== Backward Propagation =========*/
-	//mode internet
+	//mode = mode;
 	if(mode == 't') {
 		//hidden layer -> input
 		for(int i = 0; i < NBIN; i++) {
@@ -227,7 +227,7 @@ void identify(char mode, double inputs[], double wIH[], double hNet[],
 	/*=========================================*/
 }
 
-//main function to call | mode = (t)rain/eval
+//main function to call | mode = (t)rain/(e)val
 char network(SDL_Surface *src, char mode)
 {
 	/*Initialize RNG*/
@@ -289,10 +289,10 @@ char network(SDL_Surface *src, char mode)
 	else {
 		/*Initialize pointers*/
 			//do not reset weights
-		init('n', src, inputs, wIH, hNet, hOut, wHO, net, mode);
+		init('n', src, inputs, wIH, hNet, hOut, wHO, net, 'e');
 
 		/*Propagate*/
-		identify(mode, inputs, wIH, hNet, hOut, wHO, net, out, 0);
+		identify('e', inputs, wIH, hNet, hOut, wHO, net, out, '0');
 
 		/*Identify the character*/
 		double mostprob = 0.0;

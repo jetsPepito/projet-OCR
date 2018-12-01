@@ -29,13 +29,14 @@ int main()
         SDL_Surface *img;
         img = IMG_Load(PATH);
         //Call the neural network
+        printf("Test %i:\n", j);
         char id = network(img, 'e');
         if(id == (char)i) {
             success_rate++;
         }
         //Print the results
         id += 1 - 1; //so it compiles
-        printf("Test %i: expected %c, got %c\n", j, i, id);
+        printf("expected %c, got %c\n", i, id);
         free(img);
         free(PATH);
     }
