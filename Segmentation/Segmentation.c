@@ -9,7 +9,7 @@
 #include "../ImageTreatment/sdl.h"
 
 
-SDL_Surface* Segmentation (SDL_Surface* img)
+char* Segmentation (SDL_Surface* img)
 {
 	int height = img -> h;
 	int width = img -> w;
@@ -19,6 +19,9 @@ SDL_Surface* Segmentation (SDL_Surface* img)
 	int colInf;
 	int colSup;
 	int isPixel = 0;
+
+    int blank = 0;
+    char* text = "";
 
 	Uint8 r,g,b;
     SDL_Surface* character;
@@ -32,9 +35,7 @@ SDL_Surface* Segmentation (SDL_Surface* img)
 			SDL_GetRGB(currentPixel, img -> format, &r, &g, &b);
 
 			if (r ==0)
-			{
 				isPixel = 1;	
-			}
 		}
 
 		if (isPixel == 1)
@@ -48,9 +49,7 @@ SDL_Surface* Segmentation (SDL_Surface* img)
 					currentPixel = getpixel(img, j, i);
 					SDL_GetRGB(currentPixel, img -> format, &r, &g, &b);
 					if (r == 0)
-					{
 						isPixel = 1;
-					}
 				}
 				i++;
 			}
@@ -63,14 +62,21 @@ SDL_Surface* Segmentation (SDL_Surface* img)
 					currentPixel = getpixel(img, c, l);
 					SDL_GetRGB(currentPixel, img -> format, &r, &g , &b);
 					if (r == 0)
-					{
 						isPixel = 1;
-					}
 				}
 				if (isPixel == 1)
 				{
 					colInf = c;
-                    // make rectangle and histogram with argument 0
+
+                        if (blank >= 10)
+                                asprintf(&text, "%s    ", text);
+                        else
+                        {
+                            if (blank >= 1)
+                                asprintf(&text, "%s ", text);
+                        }
+                        blank = 0;
+                    
 
 					while(c < width && isPixel == 1)
 					{
@@ -80,12 +86,11 @@ SDL_Surface* Segmentation (SDL_Surface* img)
 							currentPixel = getpixel(img, c, l);
 							SDL_GetRGB(currentPixel, img -> format, &r, &g, &b);
 							if (r == 0)
-							{
 								isPixel = 1;
-							}
 						}
 						c++;
 					}
+
 					colSup = c;
 
                     // make operation on character here
@@ -96,24 +101,18 @@ SDL_Surface* Segmentation (SDL_Surface* img)
 
                     SDL_BlitSurface(img, R, character, NULL);
                     character = Cut_Borders(character);
+                    asprintf(&text, "%sA", text);
                     character = ResizeChar(character);
-
-					for (int line = lineInf; line < lineSup; line++)
-					{
-						for( int column = colInf; column < colSup; column++)
-						{
-							currentPixel = getpixel(img, column, line);
-							SDL_GetRGB(currentPixel, img -> format, &r, &g, &b);
-							r = 100;
-							currentPixel = SDL_MapRGB(img -> format, r, g, b);
-							putpixel(img, column, line, currentPixel);
-						}
-					}
 				}
+                else
+                {
+                    blank++;
+                }
 			}	
 		}
 	}
-	return character;
+    asprintf(&text, "%s\n", text);
+	return text;
 }
 
 // remove blank border on the image if they exist
@@ -245,7 +244,7 @@ void SaveSegChar (SDL_Surface* img, char* path)
 
                     while (c < width && isPixel == 1)
                     {
-                        isPixel = 0;
+                        isPixel = 0; 
                         for (int l = lineInf; l < lineSup; l++)
                         {
                             currentPixel = getpixel(img, c, l);

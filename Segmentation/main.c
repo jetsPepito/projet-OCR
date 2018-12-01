@@ -4,7 +4,7 @@
 #include "Segmentation.h"
 #include "../ImageTreatment/image_treatment.h"
 
-void pause()
+/*void pause()
 {
 	int continuer = 1;
 	SDL_Event event;
@@ -18,35 +18,28 @@ void pause()
 				continuer = 0;
 		}
 	}
-}
+}*/
 
 int main()
 {
-    SDL_Surface *ecran = NULL, *image = NULL;
-	SDL_Init(SDL_INIT_VIDEO);
-    //char* path = "../NeuralNetwork/dataset_print/arial_2/";
-    char* path = "";
+    SDL_Surface /**ecran = NULL,*/ *image = NULL;
+	//SDL_Init(SDL_INIT_VIDEO);
+    char* text;
 
-	ecran = SDL_SetVideoMode(1600, 800, 32, SDL_HWSURFACE);
-	SDL_WM_SetCaption("Chargement d'images en SDL", NULL);
+	//ecran = SDL_SetVideoMode(1600, 800, 32, SDL_HWSURFACE);
+    //SDL_WM_SetCaption("Chargement d'images en SDL", NULL);
 	//image = SDL_LoadBMP("Lorem-Ipsum.bmp");
-	//image = SDL_LoadBMP("ascii.bmp");
-    image = IMG_Load("../NeuralNetwork/dataset_print/arial_2/dataset.png");
+	image = SDL_LoadBMP("ascii.bmp");
+    //image = IMG_Load("../NeuralNetwork/dataset_print/arial_2/dataset.png");
     blackwhite(image);
     
-	SDL_Surface *segmentedImg;
-	//segmentedImg = Segmentation(image);
-    //segmentedImg = Cut_Borders(image);
-    SaveSegChar (image, path);
-    //char* str1 = "Hello";
-    //char* str2 = "World";
-    //char* fulltext = Append(str1, str2);
-    //printf("%s\n", fulltext);
-	SDL_BlitSurface(segmentedImg, NULL, ecran, NULL);
+	text = Segmentation(image);
+	/*SDL_BlitSurface(image, NULL, ecran, NULL);
 	SDL_Flip(ecran);
 	pause();
 
 	SDL_FreeSurface(image);
-	SDL_Quit();
+	SDL_Quit();*/
+    printf("%s", text);
 	return 0;
 }
