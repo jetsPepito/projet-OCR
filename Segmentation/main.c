@@ -24,7 +24,8 @@ int main()
 {
     SDL_Surface *ecran = NULL, *image = NULL;
 	SDL_Init(SDL_INIT_VIDEO);
-    char* path = "../NeuralNetwork/dataset_print/arial_2/";
+    //char* path = "../NeuralNetwork/dataset_print/arial_2/";
+    char* path = "";
 
 	ecran = SDL_SetVideoMode(1600, 800, 32, SDL_HWSURFACE);
 	SDL_WM_SetCaption("Chargement d'images en SDL", NULL);

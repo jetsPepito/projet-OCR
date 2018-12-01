@@ -186,24 +186,6 @@ SDL_Surface* Cut_Borders(SDL_Surface *img)
     return cutedImg;
 }
 
-char* Append(char *str1, char *str2)
-{
-    size_t size1 = strlen(str1);
-    size_t size = size1 + strlen(str2) + 1;
-
-    char* str = realloc(str1, size* sizeof(char));
-    if (str == NULL)
-        errx(1, "Not enough memory!");
-
-    char *p = str + size1;
-    while (*str2 != 0)
-        *(p++) = *(str2++);
-
-    *p = 0;
-
-    return str;
-}
-
 void SaveSegChar (SDL_Surface* img, char* path)
 {
     int height = img -> h;
@@ -215,8 +197,7 @@ void SaveSegChar (SDL_Surface* img, char* path)
     int colSup;
     int isPixel = 0;
     int iter = 0;
-    char* png = ".png";
-    char* samepath = path;              // with Append(path, image) path will be change -> segfault my love
+    //char* samepath = path;              // with Append(path, image) path will be change -> segfault my love
 
     Uint8 r,g,b;
     SDL_Surface* character;
@@ -284,23 +265,16 @@ void SaveSegChar (SDL_Surface* img, char* path)
                     character = Cut_Borders(character);
                     character = ResizeChar(character);
 
-                    /*int length = snprintf(NULL, 0, "%d", iter);
-                    char * iterator = malloc(length + 1);
-
-                    snprintf(iterator, length + 1, "%d", iter);*/
-
                     char* iterator;
                     asprintf(&iterator, "%d", iter);
-                    Append(iterator, png);
-                    //printf("%s\n", samepath);
-                    //Append(samepath, iterator);
-                    asprintf(&iterator, "%s%s", samepath, iterator);
+                    asprintf(&iterator, "%s.png", iterator);
+                    asprintf(&iterator, "%s%s", path, iterator);
                     printf("%s\n", iterator);
 
                     iter++;
-                    samepath = path;        //reinit samepath to path else segfault
+                    //samepath = path;        //reinit samepath to path else segfault
 
-                    //SaveImg(iterator, character);
+                    SaveImg(iterator, character);
                 }
             }
         }
