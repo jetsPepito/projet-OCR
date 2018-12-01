@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL/SDL.h>
-#include "Type.h"
 #include "Histogram.h"
 #include "../BasicFunctions/basic.h"
 

@@ -37,6 +37,10 @@ int main()
 	//segmentedImg = Segmentation(image);
     //segmentedImg = Cut_Borders(image);
     SaveSegChar (image, path);
+    //char* str1 = "Hello";
+    //char* str2 = "World";
+    //char* fulltext = Append(str1, str2);
+    //printf("%s\n", fulltext);
 	SDL_BlitSurface(segmentedImg, NULL, ecran, NULL);
 	SDL_Flip(ecran);
 	pause();

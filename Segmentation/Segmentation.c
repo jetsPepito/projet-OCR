@@ -284,13 +284,17 @@ void SaveSegChar (SDL_Surface* img, char* path)
                     character = Cut_Borders(character);
                     character = ResizeChar(character);
 
-                    int length = snprintf(NULL, 0, "%d", iter);
+                    /*int length = snprintf(NULL, 0, "%d", iter);
                     char * iterator = malloc(length + 1);
 
-                    snprintf(iterator, length + 1, "%d", iter);
+                    snprintf(iterator, length + 1, "%d", iter);*/
+
+                    char* iterator;
+                    asprintf(&iterator, "%d", iter);
                     Append(iterator, png);
                     //printf("%s\n", samepath);
-                    Append(samepath, Append(iterator, png));
+                    //Append(samepath, iterator);
+                    asprintf(&iterator, "%s%s", samepath, iterator);
                     printf("%s\n", iterator);
 
                     iter++;
