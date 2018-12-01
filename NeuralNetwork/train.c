@@ -7,8 +7,8 @@
 int main()
 {
     /* STRUCTURE DU DATASET :
-    *  ./dataset_print/arial/char.png
-    *  char : [33-122] letter corresponding to the char in the array in network
+    *  ./dataset_print/arial_2/char.png
+    *  char : [0-51] letter corresponding to the char in the array in network
     */
 
     //Training
@@ -16,21 +16,15 @@ int main()
 
     double success_rate = 0;
     //Post-training test
-    for (int j = 0; j < 58; j++) {
+    for (int j = 0; j < 52; j++) {
         //adapt the character
         char i;
-        else if(j >= 0 && j <= 25) {i = j + 65;} //uppercase
-        else if(j >= 26 && j <= 51) {i = j + 71;} //lowercase
-        else if(j == 52) {i = 33;} // !
-        else if(j == 53) {i = 39;} // '
-        else if(j == 54) {i = 44;} // ,
-        else if(j == 55) {i = 46;} // .
-        else if(j == 56) {i = 58;} // :
-        else if(j == 57) {i = 63;} // ?
+        if(j >= 0 && j <= 25) {i = j + 65;} //uppercase
+        else {i = j + 71;} //lowercase
 
         //Create the path
         char *PATH;
-        asprintf(&PATH, "./dataset_print/arial/%i.png", j);
+        asprintf(&PATH, "./dataset_print/arial_2/%i.png", j);
         //Load the image
         SDL_Surface *img;
         img = IMG_Load(PATH);

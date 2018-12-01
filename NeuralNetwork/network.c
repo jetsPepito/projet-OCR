@@ -13,7 +13,7 @@
 #define NBIN 101		//NBINPUTS			i : 100 + bias	| 10*10 px image
 #define NBHN 71			//NBHIDDENNET		h1:
 #define NBHO 72			//NBHIDDENOUT		h2: h1 + bias
-#define NBOU 58			//NBOUTPUTS			o : letters + 8 special chars
+#define NBOU 52			//NBOUTPUTS			o : letters
 #define ETA 0.025		//LEARNING RATE
 #define NBTR 1000		//NBTRAININGTURNS
 
@@ -246,15 +246,15 @@ char network(SDL_Surface *src, char mode)
 	    char expected = 0;
 	    for (int n = 1; n <= NBTR; n++) {
 	        //Select a random character
-	        char rnd = (char)(rand()%57);
+	        char rnd = (char)(rand()%51);
 	        while (rnd == expected) {
-	            rnd = (char)(rand()%57);
+	            rnd = (char)(rand()%51);
 	        }
 	        expected = rnd;
 
 	        //Create the corresponding path
 	        char *PATH;
-	        asprintf(&PATH, "./dataset_print/arial/%i.png", expected);
+	        asprintf(&PATH, "./dataset_print/arial_2/%i.png", expected);
 
 	        //Load the image
 	        SDL_Surface *img;
@@ -305,14 +305,8 @@ char network(SDL_Surface *src, char mode)
 
 		//adapt the character
         char i;
-        else if(result >= 0 && result <= 25) {i = result + 65;} //uppercase
-        else if(result >= 26 && result <= 51) {i = result + 71;} //lowercase
-        else if(result == 52) {i = 33;} // !
-        else if(result == 53) {i = 39;} // '
-        else if(result == 54) {i = 44;} // ,
-        else if(result == 55) {i = 46;} // .
-        else if(result == 56) {i = 58;} // :
-        else if(result == 57) {i = 63;} // ?
+        if(result >= 0 && result <= 25) {i = result + 65;} //uppercase
+        else {i = result + 71;} //lowercase
 
 		return i;
 	}
