@@ -5,7 +5,7 @@ CFLAGS = -Wall -Wextra -std=c99 -g
 LDFLAGS =
 LDLIBS= `pkg-config gtk+-2.0 --libs sdl` -lSDL_image -lm
 
-SRC =  ImageTreatment/image_treatment.c ImageTreatment/sdl.c BasicFunctions/basic.c GTK+/callback.c GTK+/error.c Segmentation/Histogram.c Segmentation/Segmentation.c
+SRC = ImageTreatment/image_treatment.c ImageTreatment/sdl.c BasicFunctions/basic.c GTK+/callback.c GTK+/error.c Segmentation/Histogram.c Segmentation/Segmentation.c
 OBJ = ${SRC:.c=.o}
 DEP = ${SRC:.c=.d}
 
