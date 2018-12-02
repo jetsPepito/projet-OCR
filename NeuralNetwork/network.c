@@ -1,406 +1,546 @@
-#include <math.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include <string.h>
-#include "../BasicFunctions/basic.h"
+#include <math.h>
+#include <SDL/SDL.h>
 #include "network.h"
+#include "../BasicFunctions/basic.h"
+
+#define FILENAME "./save/network_save"
+#define MAX_SIZE 100000
 
 
-
-/*========================= Declare global constants =========================*/
-
-#define SIZE 10				//IMG SIZE			size : 10 (x 10) px
-#define NBIN 101			//NBINPUTS			i : size x size + bias
-#define NBHN 35				//NBHIDDENNET		h1:
-#define NBHO 36 			//NBHIDDENOUT		h2: h1 + bias
-#define NBOU 9				//NBOUTPUTS			o : letters
-#define ETA 0.025 			//LEARNING RATE
-
-/*============================================================================*/
+/* INIT FUNCTIONS */
 
 
-
-/*============================= Declare functions ============================*/
-
-//ReLU(x) -> return
-double reLU(double x)
+void free_layer(Layer** l, size_t NBL)
 {
-	return (x > 0.0 ? x : 0.0);
+	for (size_t i = 0 ; i < NBL; i++) {
+		free(l[i]->weights);
+		free(l[i]->lastWeights);
+
+       	free(*(l + i));
+
+		//free(l[i]);
+	}
+
+	free(l);
 }
 
-//sigmoid(x) -> return
-double sig(double x)
+
+void free_network(Network* network)
 {
-	return (1 / (1 + exp(-x)));
+	free_layer(network->inputs, network->NBI);
+	free_layer(network->hiddens, network->NBH);
+	free_layer(network->outputs, network->NBO);
+
+	//free(network);
 }
 
-//softmax(net) -> out ; return sum
-double softmax(double net[], double out[], double maxnet)
+
+void init_inputs(float *inputs, SDL_Surface *surface)
 {
-	double sum = 0.0;
-	for(int k = 0; k < NBOU; k++) {
-		sum += exp(net[k] - maxnet);
-	}
-	for(int j = 0; j < NBOU; j++) {
-		out[j] = exp(net[j] - maxnet) / sum;
-	}
-	return sum;
-}
-
-//save weigths
-void save(double wIH[], double wHO[])
-{
-	int sizeIH = (NBIN * NBHN);
-	int sizeHO = (NBHO * NBOU);
-
-	double weights[sizeIH + sizeHO];
-	for(int i = 0; i < sizeIH; i++) {
-		weights[i] = wIH[i];
-	}
-	for(int i = sizeIH; i < sizeHO; i++) {
-		weights[i] = wHO[i - sizeIH];
-	}
-
-	FILE *f = fopen("weights_save", "wb");
-	fwrite(weights, sizeof(double)*(sizeIH + sizeHO), 1, f);
-	fclose(f);
-}
-
-//load weigths
-void load(double wIH[], double wHO[])
-{
-	int sizeIH = (NBIN * NBHN);
-	int sizeHO = (NBHO * NBOU);
-
-	double weights[sizeIH + sizeHO];
-	FILE *f = fopen("weights_save", "rb");
-	fread(weights, sizeof(double)*(sizeIH + sizeHO), 1, f);
-	fclose(f);
-
-	for(int i = 0; i < sizeIH; i++) {
-		wIH[i] = weights[i];
-	}
-	for(int i = sizeIH; i < sizeHO; i++) {
-		wHO[i - sizeIH] = weights[i];
-	}
-}
-
-//initialize arrays
-void init_train(SDL_Surface *src, double inputs[], double wIH[], double wHO[],
-	double hNet[], double hOut[], double net[], int turn)
-{
-	//Inputs
-	Uint32 px;
+	int width = surface->w;
+	int height = surface->h;
+	Uint32 pixel;
 	Uint8 r;
 	Uint8 g;
 	Uint8 b;
-	for(int x = 0; x < SIZE; x++) {
-		for(int y = 0; y < SIZE; y++) {
-			px = getpixel(src, x, y);
-			SDL_GetRGB(px, src->format, &r, &g, &b);
-			inputs[x * SIZE + (y + 1)] = ((r == 255) ? 0.0 : 1.0); // b=1, w=0
+
+	for(int i = 0; i < height; i++) {
+		for(int j = 0; j < width; j++) {
+			pixel = getpixel(surface, j, i);
+			SDL_GetRGB(pixel, surface->format, &r, &g, &b);
+			inputs[j*height+i] =(float) r==0;
 		}
 	}
-	inputs[0] = 1.0; // bias
+}
 
-	//Weights
-	if(turn == 1) {
-		for(int i = 0; i < NBIN; i++) {
-			for(int h1 = 0; h1 < NBHN; h1++) {
-				wIH[i * NBHN + h1] = (double)rand()/RAND_MAX*2.0-1.0;
+
+void init_input_layer(Network* network, float* value)
+{
+	for (size_t i = 0; i < network->NBI; i++) {
+		network->inputs[i]->net = value[i];
+		network->inputs[i]->out = value[i];
+	}
+}
+
+
+void init_layer(Layer** layers, size_t NBLayer, size_t NBLink)
+{
+	for(size_t i = 0 ; i < NBLayer; i++) {
+		layers[i] = (Layer*)calloc(1,sizeof(Layer));
+		layers[i]->bias = 0;
+		layers[i]->lastBias = 0;
+
+		layers[i]->net = 0;
+		layers[i]->out = 0;
+		layers[i]->weights = (float*)calloc(NBLink, sizeof(float));
+		layers[i]->lastWeights = (float*)calloc(NBLink, sizeof(float));
+	}
+}
+
+
+void link_layers(Layer** l1, size_t NBL1, size_t NBL2)
+{
+	srand((unsigned int) time(NULL));
+	float init = 1/sqrt(900);
+
+	for(size_t i = 0 ; i < NBL1; i++) {
+		for(size_t j = 0 ; j < NBL2; j++) {
+			l1[i]->weights[j] = (float)(rand()*2.0f*init)
+								/(float)(RAND_MAX)
+								-init;
+			l1[i]->lastWeights[j]= l1[i]->weights[j];
+		}
+	}
+}
+
+
+void init_links(Network* n)
+{
+	if (&(n->hiddens) == NULL) {
+		printf("No hiden");
+		link_layers(n->inputs, n->NBI, n->NBO);
+	} else {
+		link_layers(n->inputs, n->NBI, n->NBH);
+		link_layers(n->hiddens , n->NBH, n->NBO);
+	}
+}
+
+
+void init_network(Network* network, size_t NBI, size_t NBH, size_t NBO)
+{
+	network->NBI = NBI;
+	network->NBH = NBH;
+	network->NBO = NBO;
+
+	network->inputs = (Layer**)calloc(NBI, sizeof(Layer*));
+	network->hiddens = (Layer**)calloc(NBH, sizeof(Layer*));
+   	network->outputs = (Layer**)calloc(NBO, sizeof(Layer*));
+
+	init_layer(network->inputs, NBI, NBH);
+	init_layer(network->hiddens, NBH, NBO);
+	init_layer(network->outputs, NBO, 0);
+
+	init_links(network);
+}
+
+
+/* TOOLBOX FUNCTIONS */
+
+
+float sigmoid(float x)
+{
+	return 1 / (1 + exp(-x));
+}
+
+
+float sigmoid_prime(float x)
+{
+	return (sigmoid(x) * (1-sigmoid(x)));
+}
+
+
+float calculateError(Network* n, float* expected)
+{
+	float error = 0;
+	for (size_t i = 0; i <  n->NBO; i++) {
+		error += fabs(n->outputs[i]->out - expected[i]);
+	}
+
+	return error;// / n->NBO;
+}
+
+
+void calculateGradient(Layer** l1, size_t NBL1, Layer** l2, size_t NBL2)
+{
+	for(size_t i = 0; i < NBL1 ;i++)	{
+		for(size_t j = 0; j < NBL2 ; j++) {
+			l1[i]->gradient += l1[i]->weights[j]*l2[j]->gradient ;
+		}
+		l1[i]->gradient = l1[i]->gradient*sigmoid_prime(l1[i]->net);
+	}
+}
+
+
+void resetGrad(Layer** l, size_t NBL)
+{
+	for (size_t i = 0; i < NBL; i++) {
+		l[i]->gradient = 0;
+	}
+}
+
+
+/* SAVE AND LOAD */
+
+
+void save_layers(Layer** l, size_t NBL, size_t NBW, FILE* file)
+{
+	// bias
+	fputs("(", file);
+	for(size_t i = 0; i < NBL; i++) {
+		if (i == NBL - 1) {
+			fprintf(file, "%f", l[i]->bias);
+		} else {
+			fprintf(file, "%f,", l[i]->bias);
+		}
+	}
+	fputs(")\n", file);
+
+	//weights
+	if (NBW != 0) {
+		for (size_t i = 0; i < NBL ; i++) {
+			fputc('(', file);
+			for(size_t j = 0; j < NBW; j++) {
+				if (j == NBW - 1) {
+					fprintf(file, "%f", l[i]->weights[j]);
+				} else {
+					fprintf(file, "%f,", l[i]->weights[j]);
+				}
 			}
-		}
-		for(int h2 = 0; h2 < NBHO; h2++) {
-			for(int o = 0; o < NBOU; o++) {
-				wHO[h2 * NBOU + o] = (double)rand()/RAND_MAX*2.0-1.0;
-			}
-		}
-	}
-
-	//Hidden Layer
-	for(int h1 = 0; h1 < NBHN; h1++) {
-		hNet[h1] = 0.0;
-	}
-	hOut[0] = 1.0; // bias
-
-	//Outputs
-	for(int o = 0; o < NBOU; o++) {
-		net[o] = 0.0;
-	}
-}
-
-//initialize arrays
-void init_eval(SDL_Surface *src, double inputs[], double wIH[], double wHO[],
-	double hNet[], double hOut[], double net[])
-{
-	//Inputs
-	Uint32 px;
-	Uint8 r;
-	Uint8 g;
-	Uint8 b;
-	for(int x = 0; x < SIZE; x++) {
-		for(int y = 0; y < SIZE; y++) {
-			px = getpixel(src, x, y);
-			SDL_GetRGB(px, src->format, &r, &g, &b);
-			inputs[x * SIZE + (y + 1)] = ((r == 255) ? 0.0 : 1.0); // b=1, w=0
-		}
-	}
-	inputs[0] = 1.0; // bias
-
-	//Weights
-	load(wIH, wHO);
-
-	//Hidden Layer
-	for(int h1 = 0; h1 < NBHN; h1++) {
-		hNet[h1] = 0.0;
-	}
-	hOut[0] = 1.0; // bias
-
-	//Outputs
-	for(int o = 0; o < NBOU; o++) {
-		net[o] = 0.0;
-	}
-}
-
-//forward propagation
-void identify(double inputs[], double wIH[], double hNet[],	double hOut[],
-	double wHO[], double net[], double out[])
-{
-	// inputs -> hidden layer
-	for(int h1 = 0; h1 < NBHN; h1++) {
-		for(int i = 0; i < NBIN; i++) {
-			hNet[h1] += inputs[i] * wIH[i * NBHN + h1];
-		}
-	}
-
-	// hidden layer activation
-	for(int h1 = 0; h1 < NBHN; h1++) {
-		hOut[h1+1] = reLU(hNet[h1]);
-	}
-
-	// hidden layer -> outputs
-	for(int o = 0; o < NBOU; o++) {
-		for(int h2 = 0; h2 < NBHO; h2++) {
-			net[o] += hOut[h2] * wHO[h2 * NBOU + o];
-		}
-	}
-
-	/*
-	//max of net output array
-	double maxnet = net[0];
-	for (int i = 1; i < NBOU; i++) {
-		if(net[i] > maxnet) {
-			maxnet = net[i];
-		}
-	}
-
-	// outputs activation
-	softmax(net, out, maxnet);
-	*/
-	for(int o = 0; o < NBOU; o++) {
-		out[o] = sig(net[o]);
-	}
-}
-
-//backward propagation
-void correct(double inputs[], double wIH[], double hNet[], double hOut[],
-	double wHO[], double out[], int expected)
-{
-	// CROSS-ENTROPY :
-
-	//wIH
-	for(int i = 0; i < NBIN; i++) {
-		for(int h1 = 0; h1 < NBHN; h1++) {
-			wIH[i * NBHN + h1] -= ( ((-1)/out[expected])
-								* out[expected] * (1 - out[expected])
-								* wHO[(h1 + 1) * NBOU + expected]
-								* (hNet[h1] > 0 ? 1 : 0)
-								* inputs[i]
-								* ETA );
-		}
-	}
-	//wHO
-	for(int h2 = 0; h2 < NBHO; h2++) {
-		wHO[h2 * NBOU + expected] -= ( ((-1)/out[expected])
-									* out[expected] * (1 - out[expected])
-									* hOut[h2]
-									* ETA );
-	}
-}
-
-//print the array's content
-void __debug__(char mode, double array[])
-{
-	if(mode == 'i') { //inputs
-		for (int i = 0; i < NBIN; i++) {
-			printf("Input %3i : %g\n", i, array[i]);
-		}
-	}
-	else if(mode == 'w') { //wIH
-		for (int i = 0; i < (NBIN * NBHN); i++) {
-			printf("WIH %4i : %g\n", i, array[i]);
-		}
-	}
-	else if(mode == 'h') { //hNet
-		for (int i = 0; i < NBHN; i++) {
-			printf("HNet %3i : %g\n", i, array[i]);
-		}
-	}
-	else if(mode == 'H') { //hOut
-		for (int i = 0; i < NBHO; i++) {
-			printf("HOut %3i : %g\n", i, array[i]);
-		}
-	}
-	else if(mode == 'W') { //wHO
-		for (int i = 0; i < (NBHO * NBOU); i++) {
-			printf("WHO %4i : %g\n", i, array[i]);
-		}
-	}
-	else if(mode == 'n') { //net
-		for (int i = 0; i < NBOU; i++) {
-			printf("Net %3i : %g\n", i, array[i]);
-		}
-	}
-	else if(mode == 'o') { //out
-		for (int i = 0; i < NBOU; i++) {
-			printf("Out %3i : %g\n", i, array[i]);
+			fputs(")\n", file);
 		}
 	}
 }
 
-//train the network
-void train(int nbtr)
+
+int save_network(Network* network)
 {
-	/*Initialize RNG*/
-	srand(time(NULL));
+	FILE* file = NULL;
+	file = fopen(FILENAME,"w+");
 
-	/*Prepare variables*/
-	int expected = -1;
-	char *PATH;
+	save_layers(network->inputs, network->NBI,network->NBH, file);
+	save_layers(network->hiddens, network->NBH, network->NBO, file);
+	save_layers(network->outputs, network->NBO, 0, file);
 
-	/*Declare arrays*/
-	double inputs[NBIN];
-	double wIH[NBIN * NBHN];
-	double wHO[NBHO * NBOU];
-	double hNet[NBHN];
-	double hOut[NBHO];
-	double net[NBOU];
-	double out[NBOU];
+	fclose(file);
 
-	/*Train*/
-	for (int n = 1; n <= nbtr; n++)
+	return 0;
+}
+
+
+void load_layers(Layer** l, size_t NBL, size_t NBW, FILE* file)
+{
+	char chain[MAX_SIZE];
+	float actualNumber = 0, dec = 0.1;
+	size_t i = 0, j = 0;
+	char sign = 0, decimal = 0;
+
+	if (fgets(chain, MAX_SIZE, file) == NULL) {
+        printf("NOT ENOUGH LINE\n");
+	}
+
+	for (i = 0; i < NBL; i++)
 	{
-		//Select a random character
-		int rnd = (char)(rand()%9);
-		expected = rnd;
+		j++;
+		if (chain[j] == '-') {
+			sign = 1;
+			j++;
+		}
 
-		//Convert to char
-		char expectedc = 255;
-		if(expected == 0) {expectedc = 'L';}
-		else if(expected == 1) {expectedc = 'e';}
-		else if(expected == 2) {expectedc = 'i';}
-		else if(expected == 3) {expectedc = 'm';}
-		else if(expected == 4) {expectedc = 'o';}
-		else if(expected == 5) {expectedc = 'p';}
-		else if(expected == 6) {expectedc = 'r';}
-		else if(expected == 7) {expectedc = 's';}
-		else {expectedc = 'u';}
-		expectedc += 0; //For cases where nothing is printed
+		decimal = 0;
+	    actualNumber = 0;
+        dec = 0.1;
 
-		//Create the corresponding path
-		asprintf(&PATH, "./dataset_print/arial/%i.bmp", expected);
-
-		//Load the image
-		SDL_Surface *img;
-		img = IMG_Load(PATH);
-
-		//Initialize arrays
-		init_train(img, inputs, wIH, wHO, hNet, hOut, net, n);
-
-		//Propagate
-		identify(inputs, wIH, hNet, hOut, wHO, net, out);
-
-		//Back-Propagate
-		correct(inputs, wIH, hNet, hOut, wHO, out, expected);
-
-		//Identify the character
-		double mostprob = 0.0;
-		int result = 0;
-		for(int i = 0; i < NBOU; i++) {
-			if(out[i] > mostprob) {
-				mostprob = out[i];
-				result = i;
+		for(; chain[j] != ',' && chain[j] != ')' && chain[j] != '\n'; j++) {
+			if (chain[j] == '.') {
+				decimal = 1;
+				j++;
+			}
+			if(decimal) {
+				actualNumber += (((float) chain[j] - 48)) * dec;
+				dec *= 0.1;
+			}
+			else {
+				actualNumber = actualNumber * 10 + (((float) chain[j] - 48));
 			}
 		}
 
-		//Convert to char
-		char resultc = 255;
-		if(result == 0) {resultc = 'L';}
-		else if(result == 1) {resultc = 'e';}
-		else if(result == 2) {resultc = 'i';}
-		else if(result == 3) {resultc = 'm';}
-		else if(result == 4) {resultc = 'o';}
-		else if(result == 5) {resultc = 'p';}
-		else if(result == 6) {resultc = 'r';}
-		else if(result == 7) {resultc = 's';}
-		else {resultc = 'u';}
-		resultc += 0; //For cases where nothing is printed
+		if (sign == 1) {
+			actualNumber *= -1;
+		}
+
+		l[i]->bias = actualNumber;
+        sign = 0;
+	}
+
+
+	for (i = 0; i < NBL; i++)
+	{
+		if (fgets(chain, MAX_SIZE, file) == NULL)
+            printf("NOT ENOUGH LINE\n");
+
+        j = 0;
+		for (size_t k = 0; k < NBW; k++)
+		{
+            j++;
+
+            if (chain[j] == '-'){
+                sign = 1;
+                j++;
+            }
+
+            decimal = 0;
+            actualNumber = 0;
+            dec = 0.1;
+
+            for(; chain[j] != ',' && chain[j] != ')' && chain[j] != '\n'; j++) {
+                if (chain[j] == '.') {
+                    decimal = 1;
+                    j++;
+                }
+                if(decimal) {
+                    actualNumber += (((float) chain[j] - 48)) * dec;
+                    dec *= 0.1;
+                }
+                else {
+                    actualNumber = actualNumber * 10 + (((float) chain[j] - 48));
+				}
+            }
+
+            if (sign == 1) {
+                actualNumber *= -1;
+			}
+
+            l[i]->weights[k] = actualNumber;
+            sign = 0;
+		}
+	}
+}
+
+
+int load_network(Network* network, char* path)
+{
+	FILE* file = NULL;
+	file = fopen(path, "r");
+
+	if(file == NULL){
+		printf("The Network can not be loaded, the file does not exists...\n");
+		return 1;
+	}
+
+	load_layers(network->inputs, network->NBI,network->NBH, file);
+	load_layers(network->hiddens, network->NBH, network->NBO, file);
+	load_layers(network->outputs, network->NBO, 0, file);
+	fclose(file);
+
+	return 0;
+}
+
+
+/* FORWARD PASS FUNCTIONS */
+
+
+void sumWeight(Layer** l, size_t NBL, Layer** l2, size_t NBL2)
+{
+	for(size_t i = 0 ; i < NBL; i++) {
+		for(size_t j = 0 ; j < NBL2; j++) {
+			l2[j]->net += l[i]->out
+							* l[i]->weights[j];
+		}
+	}
+}
+
+
+void activate(Layer** l, size_t NBL)
+{
+	for(size_t i = 0 ; i < NBL; i++) {
+		l[i]->net += l[i]->bias;
+		l[i]->out = sigmoid(l[i]->net);
+	}
+}
+
+
+void forward_pass(Network* n)
+{
+	for(size_t i = 0 ; i < n->NBH; i++) {
+		n->hiddens[i]->net = 0;
+		n->hiddens[i]->out = 0;
+	}
+	for(size_t i = 0 ; i < n->NBO; i++){
+		n->outputs[i]->net = 0;
+		n->outputs[i]->out = 0;
+	}
+
+	sumWeight(n->inputs, n->NBI, n->hiddens, n->NBH);
+
+	activate(n->hiddens, n->NBH);
+
+	sumWeight(n->hiddens, n->NBH, n->outputs, n->NBO);
+
+	activate(n->outputs, n->NBO);
+}
+
+
+/* BACK PROPAGATION FUNCTIONS */
+
+
+void update(Layer** l1, size_t NBL1, Layer** l2, size_t NBL2, float ETA)
+{
+	for(size_t i = 0; i < NBL1 ;i++) {
+		for(size_t j = 0; j < NBL2 ; j++) {
+			l1[i]->lastWeights[j] = l1[i]->lastWeights[j] * 0.01f
+					- ETA * l2[j]->gradient * l1[i]->out;
+
+			l1[i]->weights[j] += l1[i]->lastWeights[j];
+		}
+	}
+}
+
+
+void update_bias(Layer** layers, size_t NBL, float ETA)
+{
+	for (size_t i = 0; i < NBL; i++) {
+		layers[i]->lastBias = 0.01f * layers[i]->lastBias
+							- layers[i]->gradient * ETA;
+		layers[i]->bias += layers[i]->lastBias ;
+	}
+}
+
+
+void backward_prop(Network* n, float ETA)
+{
+	//change the weights
+	update(n->hiddens, n->NBH, n->outputs, n->NBO,ETA);
+	update(n->inputs, n->NBI, n->hiddens, n->NBH,ETA);
+
+	//change the bias
+	update_bias(n->outputs, n->NBO, ETA);
+	update_bias(n->hiddens, n->NBH, ETA);
+}
+
+
+/* LEARNING FUNCTIONS */
+
+
+float train(Network *n,char *path, int expected, float ETA)
+{
+	float *exOut = calloc(n->NBO, sizeof(float));
+	float error = 100;
+
+	resetGrad(n->outputs, n->NBO);
+	resetGrad(n->hiddens, n->NBH);
+	resetGrad(n->inputs, n->NBI);
+
+	//init inputs
+	exOut[expected] = 1;
+	float *ex = malloc(sizeof(float)*n->NBI);
+	SDL_Surface *s = SDL_LoadBMP(path);
+	init_inputs(ex,s);
+
+	//forward pass
+	init_input_layer(n, ex);
+	forward_pass(n);
+
+	for (size_t i = 0; i < n -> NBO ; i++) {
+		Layer* l = n->outputs[i];
+        l->gradient +=  (l->out - exOut[i]) *  sigmoid_prime(l->net);
+	}
+
+	//error calculation
+	error = calculateError(n, exOut);
+
+	exOut[expected] = 0;
+
+	free(ex);
+
+	//backward propagation
+	calculateGradient(n->hiddens, n->NBH, n->outputs, n->NBO);
+	backward_prop(n, ETA);
+
+
+	free(exOut);
+	return error;
+}
+
+
+/* EVAL FUNCTION */
+
+
+char analyze(SDL_Surface *s, Network *n)
+{
+	float *inputs = malloc(sizeof(float)*n->NBI);
+	init_inputs(inputs, s);
+
+	init_input_layer(n, inputs);
+	forward_pass(n);
+
+	char *output = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	int max = 0;
+	for(size_t x = 0; x < n->NBO; x++) {
+		if(n->outputs[x]->out > n->outputs[max]->out) {
+			max = x;
+		}
+	}
+	free(inputs);
+	return *(output + max);
+}
+
+/* SUCCESS CALCULATIONS */
+
+
+void calcSuccess(Network *n)
+{
+	double success_rate = 0.0;
+    for (int j = 0; j < 9; j++)
+    {
+        //adapt the character
+        char i;
+        if(j == 0) {i = 'L';}
+		else if(j == 1) {i = 'e';}
+		else if(j == 2) {i = 'i';}
+		else if(j == 3) {i = 'm';}
+		else if(j == 4) {i = 'o';}
+		else if(j == 5) {i = 'p';}
+		else if(j == 6) {i = 'r';}
+		else if(j == 7) {i = 's';}
+		else {i = 'u';}
+
+        //Create the path
+        char *PATH;
+        asprintf(&PATH, "./dataset_print/arial/%i.bmp", j);
+
+        //Load the image
+        SDL_Surface *img;
+        img = SDL_LoadBMP(PATH);
+
+        //Call the neural network
+        char id = analyze(img, n);
+
+        //Check for success rate
+        if(id == (char)i) {
+            success_rate++;
+        }
+
+        SDL_FreeSurface(img);
+        free(PATH);
 
 		//Print the results
-		//printf("Training %4i: expected %c, got %c\n",n,expectedc,resultc);
-		SDL_FreeSurface(img);
-		free(PATH);
-	}
-
-	/*Save weights*/
-	save(wIH, wHO);
+        printf("\texpected %c, got %c\n", i, id);
+    }
+	printf("Success rate : %g\n", (success_rate / 9));
 }
 
-//main function to call
-char network(SDL_Surface *src)
+
+/* TRAINING STARTER */
+
+
+void createNetwork(Network *n, int NBO, int NBI, int NBH)
 {
-	/*Initialize RNG*/
-	srand(time(NULL));
+   	init_network(n, NBI, NBH, NBO);
+	char *path;
 
-	/*Declare arrays*/
-	double inputs[NBIN];
-	double wIH[NBIN * NBHN];
-	double wHO[NBHO * NBOU];
-	double hNet[NBHN];
-	double hOut[NBHO];
-	double net[NBOU];
-	double out[NBOU];
-
-	/*Initialize arrays*/
-	init_eval(src, inputs, wIH, wHO, hNet, hOut, net);
-
-	/*Propagate*/
-	identify(inputs, wIH, hNet, hOut, wHO, net, out);
-
-	/*Identify the character*/
-	double mostprob = 0.0;
-	int result = 0;
-	for(int i = 0; i < NBOU; i++) {
-		if(out[i] > mostprob) {
-			mostprob = out[i];
-			result = i;
-		}
+	float error = 100;
+	int i = 0;
+	while(error > 0.1 || i < 1000) {
+		i++;
+		int expected = (char)(rand()%9);
+		asprintf(&path, "./dataset_print/arial/%i.bmp", expected);
+		error = train(n, path, expected, 0.1f);
+		printf("error = %f    %d\r", error, i);
 	}
-
-	/*Convert to char*/
-    char resultc;
-    if(result == 0) {resultc = 'L';}
-	else if(result == 1) {resultc = 'e';}
-	else if(result == 2) {resultc = 'i';}
-	else if(result == 3) {resultc = 'm';}
-	else if(result == 4) {resultc = 'o';}
-	else if(result == 5) {resultc = 'p';}
-	else if(result == 6) {resultc = 'r';}
-	else if(result == 7) {resultc = 's';}
-	else {resultc = 'u';}
-
-	return resultc;
+	save_network(n);
+	calcSuccess(n);
 }
-
-/*============================================================================*/
