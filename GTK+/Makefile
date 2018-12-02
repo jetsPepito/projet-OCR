@@ -2,7 +2,7 @@
 
 CPPFLAGS= `pkg-config --cflags gtk+-2.0 sdl` -MMD
 CC = gcc
-CFLAGS =
+CFLAGS = -Wall -Wextra -std=c99
 LDFLAGS =
 LDLIBS = -lm `pkg-config --libs gtk+-2.0 sdl` -lSDL_image
 
