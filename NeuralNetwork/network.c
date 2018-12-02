@@ -8,7 +8,7 @@
 #include "../BasicFunctions/basic.h"
 
 #define FILENAME "./save/network_save"
-#define MAX_SIZE 100000
+#define MAX_SIZE 999999
 
 
 /* INIT FUNCTIONS */
@@ -317,7 +317,7 @@ int load_network(Network* network, char* path)
 	file = fopen(path, "r");
 
 	if(file == NULL){
-		printf("The Network can not be loaded, the file does not exists...\n");
+		printf("Loading failed...\n");
 		return 1;
 	}
 
@@ -467,7 +467,7 @@ char analyze(SDL_Surface *s, Network *n)
 	init_input_layer(n, inputs);
 	forward_pass(n);
 
-	char *output = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	char *output = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 	int max = 0;
 	for(size_t x = 0; x < n->NBO; x++) {
 		if(n->outputs[x]->out > n->outputs[max]->out) {
@@ -484,23 +484,16 @@ char analyze(SDL_Surface *s, Network *n)
 void calcSuccess(Network *n)
 {
 	double success_rate = 0.0;
-    for (int j = 0; j < 9; j++)
+    for (int j = 0; j < 52; j++)
     {
         //adapt the character
         char i;
-        if(j == 0) {i = 'L';}
-		else if(j == 1) {i = 'e';}
-		else if(j == 2) {i = 'i';}
-		else if(j == 3) {i = 'm';}
-		else if(j == 4) {i = 'o';}
-		else if(j == 5) {i = 'p';}
-		else if(j == 6) {i = 'r';}
-		else if(j == 7) {i = 's';}
-		else {i = 'u';}
+        if(j >= 0 && j <= 25) {i = j + 65;} //uppercase
+        else {i = j + 71;} //lowercase
 
         //Create the path
         char *PATH;
-        asprintf(&PATH, "./dataset_print/arial/%i.bmp", j);
+        asprintf(&PATH, "./dataset_print/arial_2/%i.bmp", j);
 
         //Load the image
         SDL_Surface *img;
@@ -520,7 +513,7 @@ void calcSuccess(Network *n)
 		//Print the results
         printf("\texpected %c, got %c\n", i, id);
     }
-	printf("Success rate : %g\n", (success_rate / 9));
+	printf("Success rate : %g\n", (success_rate / 52));
 }
 
 
@@ -536,8 +529,8 @@ void createNetwork(Network *n, int NBO, int NBI, int NBH)
 	int i = 0;
 	while(error > 0.1 || i < 1000) {
 		i++;
-		int expected = (char)(rand()%9);
-		asprintf(&path, "./dataset_print/arial/%i.bmp", expected);
+		int expected = (char)(rand()%51);
+		asprintf(&path, "./dataset_print/arial_2/%i.bmp", expected);
 		error = train(n, path, expected, 0.1f);
 		printf("error = %f    %d\r", error, i);
 	}

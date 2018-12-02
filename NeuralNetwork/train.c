@@ -7,5 +7,5 @@
 int main()
 {
     struct Network n;
-    createNetwork(&n, 9, 100, 40);
+    createNetwork(&n, 52, 100, 61);
 }
