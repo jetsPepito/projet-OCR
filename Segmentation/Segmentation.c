@@ -20,7 +20,7 @@ char* Segmentation (SDL_Surface* img)
 	int colInf;
 	int colSup;
 	int isPixel = 0;
-    //int startLine = 0;
+    //char* path = "../NeuralNetwork/character.bmp";
 
     int blank = 0;
     char* text = "";
@@ -74,7 +74,6 @@ char* Segmentation (SDL_Surface* img)
                         if (blank >= 10)
                         {
                             asprintf(&text, "%s    ", text);
-                            
                         }
                         else
                         {
@@ -111,10 +110,15 @@ char* Segmentation (SDL_Surface* img)
                     character = Cut_Borders(character);
                     character = ResizeChar(character);
 
-                    struct Network n;
-                    char txtofchar = analyze(character, &n);
+                    //SaveImg(path, character);
+                    //printf("%s", path);
+                    
+
+                    char txtofchar = network(character);
                     //char txtofchar = 'a';
                     asprintf(&text, "%s%c", text, txtofchar);
+
+                    //SDL_FreeSurface(character);
 				}
                 else
                 {
@@ -153,7 +157,7 @@ SDL_Surface* Cut_Borders(SDL_Surface *img)
         markSupY++;
         i++;
     }
-    markSupY--;                         // -1 else mark is not the good value due to the while 
+    markSupY--;          // -1 else mark is not the good value due to the while 
 
     i = height - 1;
     int markInfY = height - 1;
@@ -163,7 +167,7 @@ SDL_Surface* Cut_Borders(SDL_Surface *img)
         markInfY--;
         i--;
     }
-    markInfY++;                         // +1 else mark is not the good value du to the while 
+    markInfY++;          // +1 else mark is not the good value due to the while 
     
     i = 0;
     int markLeftX = 0;
@@ -191,7 +195,8 @@ SDL_Surface* Cut_Borders(SDL_Surface *img)
     rectangle.w = markRightX - markLeftX;
     rectangle.h = markInfY - markSupY;
 
-    cutedImg = SDL_CreateRGBSurface(0, rectangle.w, rectangle.h, 32, 0, 0, 0, 0);
+    cutedImg = SDL_CreateRGBSurface(0, rectangle.w, rectangle.h, 32, 0, 0, 0, 
+                                                                            0);
     SDL_BlitSurface(img, r, cutedImg, NULL);
 
     return cutedImg;
@@ -208,7 +213,6 @@ void SaveSegChar (SDL_Surface* img, char* path)
     int colSup;
     int isPixel = 0;
     int iter = 0;
-    //char* samepath = path;              // with Append(path, image) path will be change -> segfault my love
 
     Uint8 r,g,b;
     SDL_Surface* character;
@@ -285,8 +289,6 @@ void SaveSegChar (SDL_Surface* img, char* path)
                     printf("%s\n", iterator);
 
                     iter++;
-                    //samepath = path;        //reinit samepath to path else segfault
-
                     SaveImg(iterator, character);
                 }
             }
