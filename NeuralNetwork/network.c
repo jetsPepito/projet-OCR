@@ -548,7 +548,7 @@ char network(SDL_Surface *img)
 	struct Network n_eval;
 	char c = 0;
 
-	c = analyze(img, &n);
+	c = analyze(img, &n_eval);
 
 	return c;
 }
