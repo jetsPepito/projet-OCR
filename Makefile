@@ -1,8 +1,9 @@
 CPPFLAGS = -MMD
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 `pkg-config --cflags sdl`
+CPPFLAGS =  `pkg-config gtk+-3.0 --cflags sdl` -MMD
+CFLAGS = -Wall -Wextra -std=c99 -g
 LDFLAGS =
-LDLIBS = -lm `pkg-config --libs sdl`
+LDLIBS= `pkg-config gtk+-3.0 --libs sdl` -lSDL_image -lm
 
 SRC =  ImageTreatment/image_treatment.c ImageTreatment/sdl.c BasicFunctions/basic.c GTK+/callback.c GTK+/error.c Segmentation/Histogram.c Segmentation/Segmentation.c
 OBJ = ${SRC:.c=.o}
