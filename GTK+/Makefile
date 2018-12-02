@@ -1,16 +1,16 @@
 # Makefile
 
 CPPFLAGS= `pkg-config --cflags gtk+-2.0 sdl` -MMD
-CC= gcc
-CFLAGS=
-LDFLAGS=
-LDLIBS= -lm `pkg-config --libs gtk+-2.0 sdl` -lSDL_image
+CC = gcc
+CFLAGS =
+LDFLAGS =
+LDLIBS = -lm `pkg-config --libs gtk+-2.0 sdl` -lSDL_image
 
 all: main
 
-SRC= main.c callback.c ../ImageTreatement/image_treatement.h ../BasicFunctions/basic.h ../ImageTreatment/sdl.h ../Segmentation/Segmentation.h ../Segmentation/Histogram.h ../NeuralNetwork/network.h
-OBJ= ${SRC:.c=.o}
-DEP= ${SRC:.c=.d}
+SRC = main.c callback.c ../ImageTreatement/image_treatement.h ../BasicFunctions/basic.h ../ImageTreatment/sdl.h ../Segmentation/Segmentation.h ../Segmentation/Histogram.h ../NeuralNetwork/network.h
+OBJ = ${SRC:.c=.o}
+DEP = ${SRC:.c=.d}
 
 main: ${OBJ}
 
