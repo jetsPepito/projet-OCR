@@ -28,6 +28,8 @@ char* Segmentation (SDL_Surface* img)
 	Uint8 r,g,b;
     SDL_Surface* character;
 
+	struct Network n_ready;
+    createNetwork(&n_ready, 52, 100, 71);
 
 	for (int i = 0; i < height; i++)
 	{
@@ -37,7 +39,7 @@ char* Segmentation (SDL_Surface* img)
 			SDL_GetRGB(currentPixel, img -> format, &r, &g, &b);
 
 			if (r ==0)
-				isPixel = 1;	
+				isPixel = 1;
 		}
 
 		if (isPixel == 1)
@@ -81,7 +83,7 @@ char* Segmentation (SDL_Surface* img)
                                 asprintf(&text, "%s ", text);
                         }
                         blank = 0;
-                    
+
 
 					while(c < width && isPixel == 1)
 					{
@@ -99,8 +101,8 @@ char* Segmentation (SDL_Surface* img)
 					colSup = c;
 
                     // make operation on character here
-                    
-                    character = SDL_CreateRGBSurface(0, colSup-colInf, 
+
+                    character = SDL_CreateRGBSurface(0, colSup-colInf,
                                             lineSup-lineInf, 32, 0, 0, 0, 0);
                     SDL_Rect rectangle = {colInf, lineInf, colSup-colInf ,
                                                         lineSup-lineInf};
@@ -112,9 +114,9 @@ char* Segmentation (SDL_Surface* img)
 
                     //SaveImg(path, character);
                     //printf("%s", path);
-                    
 
-                    char txtofchar = network(character);
+
+                    char txtofchar = network(character, &n_ready);
                     //char txtofchar = 'a';
                     asprintf(&text, "%s%c", text, txtofchar);
 
@@ -124,7 +126,7 @@ char* Segmentation (SDL_Surface* img)
                 {
                     blank++;
                 }
-			}	
+			}
 		}
 	}
     asprintf(&text, "%s\n", text);
@@ -157,18 +159,18 @@ SDL_Surface* Cut_Borders(SDL_Surface *img)
         markSupY++;
         i++;
     }
-    markSupY--;          // -1 else mark is not the good value due to the while 
+    markSupY--;          // -1 else mark is not the good value due to the while
 
     i = height - 1;
     int markInfY = height - 1;
-    
+
     while (i >= 0 && histoX[i] == 0)
     {
         markInfY--;
         i--;
     }
-    markInfY++;          // +1 else mark is not the good value due to the while 
-    
+    markInfY++;          // +1 else mark is not the good value due to the while
+
     i = 0;
     int markLeftX = 0;
 
@@ -195,7 +197,7 @@ SDL_Surface* Cut_Borders(SDL_Surface *img)
     rectangle.w = markRightX - markLeftX;
     rectangle.h = markInfY - markSupY;
 
-    cutedImg = SDL_CreateRGBSurface(0, rectangle.w, rectangle.h, 32, 0, 0, 0, 
+    cutedImg = SDL_CreateRGBSurface(0, rectangle.w, rectangle.h, 32, 0, 0, 0,
                                                                             0);
     SDL_BlitSurface(img, r, cutedImg, NULL);
 
@@ -209,7 +211,7 @@ void SaveSegChar (SDL_Surface* img, char* path)
     Uint32 currentPixel;
     int lineInf;
     int lineSup;
-    int colInf; 
+    int colInf;
     int colSup;
     int isPixel = 0;
     int iter = 0;
@@ -260,7 +262,7 @@ void SaveSegChar (SDL_Surface* img, char* path)
 
                     while (c < width && isPixel == 1)
                     {
-                        isPixel = 0; 
+                        isPixel = 0;
                         for (int l = lineInf; l < lineSup; l++)
                         {
                             currentPixel = getpixel(img, c, l);
@@ -272,12 +274,12 @@ void SaveSegChar (SDL_Surface* img, char* path)
                     }
                     colSup = c;
 
-                    character = SDL_CreateRGBSurface(0, colSup-colInf, 
+                    character = SDL_CreateRGBSurface(0, colSup-colInf,
                                             lineSup - lineInf, 32, 0, 0, 0, 0);
-                    SDL_Rect rectangle = {colInf, lineInf, colSup-colInf, 
+                    SDL_Rect rectangle = {colInf, lineInf, colSup-colInf,
                                                             lineSup-lineInf};
                     SDL_Rect* R = &rectangle;
-                    
+
                     SDL_BlitSurface(img, R, character, NULL);
                     character = Cut_Borders(character);
                     character = ResizeChar(character);
