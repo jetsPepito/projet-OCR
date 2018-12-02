@@ -31,8 +31,9 @@ int main()
 	//image = SDL_LoadBMP("Lorem-Ipsum.bmp");
 	image = SDL_LoadBMP("ascii.bmp");
     image = IMG_Load("../NeuralNetwork/dataset_print/arial_2/dataset.png");
+    grayscale(image);
     blackwhite(image);
-    
+
 	text = Segmentation(image);
 	/*SDL_BlitSurface(image, NULL, ecran, NULL);
 	SDL_Flip(ecran);
