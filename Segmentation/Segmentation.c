@@ -20,7 +20,7 @@ char* Segmentation (SDL_Surface* img)
 	int colInf;
 	int colSup;
 	int isPixel = 0;
-    //char* path = "../NeuralNetwork/character.bmp";
+    char* path = "character.bmp";
 
     int blank = 0;
     char* text = "";
@@ -112,15 +112,16 @@ char* Segmentation (SDL_Surface* img)
                     character = Cut_Borders(character);
                     character = ResizeChar(character);
 
-                    //SaveImg(path, character);
+                    SaveImg(path, character);
                     //printf("%s", path);
 
+                    SDL_Surface* newchar = SDL_LoadBMP(path);
 
-                    char txtofchar = network(character, &n_ready);
+                    char txtofchar = network(newchar, &n_ready);
                     //char txtofchar = 'a';
                     asprintf(&text, "%s%c", text, txtofchar);
 
-                    //SDL_FreeSurface(character);
+                    SDL_FreeSurface(character);
 				}
                 else
                 {
