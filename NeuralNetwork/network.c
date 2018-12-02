@@ -531,7 +531,7 @@ void createNetwork(Network *n, int NBO, int NBI, int NBH)
 	while(error > 0.1 || i < 1000) {
 		i++;
 		int expected = (char)(rand()%51);
-		asprintf(&path, "/NeuralNetwork/dataset_print/arial_2/%i.bmp", expected);
+		asprintf(&path, "./dataset_print/arial_2/%i.bmp", expected);
 		error = train(n, path, expected, 1.0f);
 	}
 	save_network(n);
