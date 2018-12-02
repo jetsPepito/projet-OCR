@@ -8,7 +8,7 @@
 #include "../BasicFunctions/basic.h"
 
 #define FILENAME "./save/network_save"
-#define MAX_SIZE 999999
+#define MAX_SIZE 100000
 
 
 /* INIT FUNCTIONS */
@@ -311,10 +311,10 @@ void load_layers(Layer** l, size_t NBL, size_t NBW, FILE* file)
 }
 
 
-int load_network(Network* network, char* path)
+int load_network(Network* network)
 {
 	FILE* file = NULL;
-	file = fopen(path, "r");
+	file = fopen(FILENAME, "r");
 
 	if(file == NULL){
 		printf("Loading failed...\n");
@@ -478,6 +478,7 @@ char analyze(SDL_Surface *s, Network *n)
 	return *(output + max);
 }
 
+
 /* SUCCESS CALCULATIONS */
 
 
@@ -531,24 +532,15 @@ void createNetwork(Network *n, int NBO, int NBI, int NBH)
 		i++;
 		int expected = (char)(rand()%51);
 		asprintf(&path, "./dataset_print/arial_2/%i.bmp", expected);
-		error = train(n, path, expected, 0.1f);
+		error = train(n, path, expected, 1.0f);
 	}
 	save_network(n);
-	calcSuccess(n);
 }
 
 
 /* PUBLIC FUNCTION */
 
-char network(char *path)
+char network(SDL_Surface *img, Network *n)
 {
-	SDL_Surface *img;
-	img = SDL_LoadBMP(path);
-
-	struct Network n_eval;
-	char c = 0;
-
-	c = analyze(img, &n_eval);
-
-	return c;
+	return analyze(img, n);
 }

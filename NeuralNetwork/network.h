@@ -33,12 +33,14 @@ struct Network
 /* TRAIN */
 // 1 - Create an empty struct Network
 // 2 - Initialise it with the wanted parameters, it will train automatically
+// 3 - Check if it knows the alphabet with calcSuccess
 void createNetwork(Network *n, int NBO, int NBI, int NBH);
+void calcSuccess(Network *n);
 
 /* EVAL */
 // 1 - Create an empty struct Network
 // 2 - Load the existing network (path = "NeuralNetwork/save/network_save")
 // 3 - Test the image
-char network(char* path);
+char network(SDL_Surface *img, Network *n);
 
 #endif
