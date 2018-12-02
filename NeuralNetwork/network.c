@@ -537,3 +537,18 @@ void createNetwork(Network *n, int NBO, int NBI, int NBH)
 	save_network(n);
 	calcSuccess(n);
 }
+
+
+/* PUBLIC FUNCTION */
+
+char network(SDL_Surface *img)
+{
+	if (img->w != 10){printf("wrong image size");}
+
+	struct Network n_eval;
+	char c = 0;
+
+	c = analyze(img, &n);
+
+	return c;
+}

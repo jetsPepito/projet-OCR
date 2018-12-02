@@ -39,7 +39,6 @@ void createNetwork(Network *n, int NBO, int NBI, int NBH);
 // 1 - Create an empty struct Network
 // 2 - Load the existing network (path = "NeuralNetwork/save/network_save")
 // 3 - Test the image
-int load_network(Network* network, char* path);
-char analyze(SDL_Surface *s, Network *n);
+char network(SDL_Surface *img);
 
 #endif
