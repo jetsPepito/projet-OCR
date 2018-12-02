@@ -50,7 +50,7 @@ void blackwhite(SDL_Surface*img){
 			}
 
 			currentpixel = SDL_MapRGB(img->format, r, g, b);
-			putpixel(img, i, j , currentpixel);
+			putpixel(imbg, i, j , currentpixel);
 		}
 	}
 }
