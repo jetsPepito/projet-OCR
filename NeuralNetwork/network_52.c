@@ -13,21 +13,15 @@
 #define SIZE 10				//IMG SIZE			size : 10 (x 10) px
 #define NBIN 101			//NBINPUTS			i : size x size + bias
 #define NBHN 35				//NBHIDDENNET		h1:
-#define NBHO 36 			//NBHIDDENOUT		h2: h1 + bias
-#define NBOU 9				//NBOUTPUTS			o : letters
-#define ETA 0.025 			//LEARNING RATE
+#define NBHO 36				//NBHIDDENOUT		h2: h1 + bias
+#define NBOU 52				//NBOUTPUTS			o : letters
+#define ETA 0.025			//LEARNING RATE
 
 /*============================================================================*/
 
 
 
 /*============================= Declare functions ============================*/
-
-//ReLU(x) -> return
-double reLU(double x)
-{
-	return (x > 0.0 ? x : 0.0);
-}
 
 //sigmoid(x) -> return
 double sig(double x)
@@ -176,7 +170,7 @@ void identify(double inputs[], double wIH[], double hNet[],	double hOut[],
 
 	// hidden layer activation
 	for(int h1 = 0; h1 < NBHN; h1++) {
-		hOut[h1+1] = reLU(hNet[h1]);
+		hOut[h1+1] = sig(hNet[h1]);
 	}
 
 	// hidden layer -> outputs
@@ -186,7 +180,6 @@ void identify(double inputs[], double wIH[], double hNet[],	double hOut[],
 		}
 	}
 
-	/*
 	//max of net output array
 	double maxnet = net[0];
 	for (int i = 1; i < NBOU; i++) {
@@ -197,35 +190,31 @@ void identify(double inputs[], double wIH[], double hNet[],	double hOut[],
 
 	// outputs activation
 	softmax(net, out, maxnet);
-	*/
-	for(int o = 0; o < NBOU; o++) {
-		out[o] = sig(net[o]);
-	}
 }
 
 //backward propagation
-void correct(double inputs[], double wIH[], double hNet[], double hOut[],
+void correct(double inputs[], double wIH[], double hOut[],
 	double wHO[], double out[], int expected)
 {
 	// CROSS-ENTROPY :
 
-	//wIH
-	for(int i = 0; i < NBIN; i++) {
-		for(int h1 = 0; h1 < NBHN; h1++) {
-			wIH[i * NBHN + h1] -= ( ((-1)/out[expected])
-								* out[expected] * (1 - out[expected])
-								* wHO[(h1 + 1) * NBOU + expected]
-								* (hNet[h1] > 0 ? 1 : 0)
-								* inputs[i]
-								* ETA );
-		}
-	}
 	//wHO
 	for(int h2 = 0; h2 < NBHO; h2++) {
 		wHO[h2 * NBOU + expected] -= ( ((-1)/out[expected])
 									* out[expected] * (1 - out[expected])
 									* hOut[h2]
 									* ETA );
+	}
+	//wIH
+	for(int i = 0; i < NBIN; i++) {
+		for(int h1 = 0; h1 < NBHN; h1++) {
+			wIH[i * NBHN + h1] -= ( ((-1)/out[expected])
+								* out[expected] * (1 - out[expected])
+								* wHO[(h1 + 1) * NBOU + expected]
+								* hOut[h1 + 1] * (1 - hOut[h1 + 1])
+								* inputs[i]
+								* ETA );
+		}
 	}
 }
 
@@ -282,9 +271,9 @@ void train(int nbtr)
 	/*Declare arrays*/
 	double inputs[NBIN];
 	double wIH[NBIN * NBHN];
-	double wHO[NBHO * NBOU];
 	double hNet[NBHN];
 	double hOut[NBHO];
+	double wHO[NBHO * NBOU];
 	double net[NBOU];
 	double out[NBOU];
 
@@ -292,24 +281,20 @@ void train(int nbtr)
 	for (int n = 1; n <= nbtr; n++)
 	{
 		//Select a random character
-		int rnd = (char)(rand()%9);
+		int rnd = (char)(rand()%51);
+		while (rnd == expected) {
+			rnd = (char)(rand()%51);
+		}
 		expected = rnd;
 
 		//Convert to char
 		char expectedc = 255;
-		if(expected == 0) {expectedc = 'L';}
-		else if(expected == 1) {expectedc = 'e';}
-		else if(expected == 2) {expectedc = 'i';}
-		else if(expected == 3) {expectedc = 'm';}
-		else if(expected == 4) {expectedc = 'o';}
-		else if(expected == 5) {expectedc = 'p';}
-		else if(expected == 6) {expectedc = 'r';}
-		else if(expected == 7) {expectedc = 's';}
-		else {expectedc = 'u';}
+		if(expected >= 0 && expected <= 25) {expectedc = expected + 65;}
+		else {expectedc = expected + 71;}
 		expectedc += 0; //For cases where nothing is printed
 
 		//Create the corresponding path
-		asprintf(&PATH, "./dataset_print/arial/%i.bmp", expected);
+		asprintf(&PATH, "./dataset_print/arial_2/%i.bmp", expected);
 
 		//Load the image
 		SDL_Surface *img;
@@ -322,7 +307,7 @@ void train(int nbtr)
 		identify(inputs, wIH, hNet, hOut, wHO, net, out);
 
 		//Back-Propagate
-		correct(inputs, wIH, hNet, hOut, wHO, out, expected);
+		correct(inputs, wIH, hOut, wHO, out, expected);
 
 		//Identify the character
 		double mostprob = 0.0;
@@ -336,15 +321,8 @@ void train(int nbtr)
 
 		//Convert to char
 		char resultc = 255;
-		if(result == 0) {resultc = 'L';}
-		else if(result == 1) {resultc = 'e';}
-		else if(result == 2) {resultc = 'i';}
-		else if(result == 3) {resultc = 'm';}
-		else if(result == 4) {resultc = 'o';}
-		else if(result == 5) {resultc = 'p';}
-		else if(result == 6) {resultc = 'r';}
-		else if(result == 7) {resultc = 's';}
-		else {resultc = 'u';}
+		if(result >= 0 && result <= 25) {resultc = result + 65;}
+		else {resultc = result + 71;}
 		resultc += 0; //For cases where nothing is printed
 
 		//Print the results
@@ -390,15 +368,8 @@ char network(SDL_Surface *src)
 
 	/*Convert to char*/
     char resultc;
-    if(result == 0) {resultc = 'L';}
-	else if(result == 1) {resultc = 'e';}
-	else if(result == 2) {resultc = 'i';}
-	else if(result == 3) {resultc = 'm';}
-	else if(result == 4) {resultc = 'o';}
-	else if(result == 5) {resultc = 'p';}
-	else if(result == 6) {resultc = 'r';}
-	else if(result == 7) {resultc = 's';}
-	else {resultc = 'u';}
+    if(result >= 0 && result <= 25) {resultc = result + 65;}
+    else {resultc = result + 71;}
 
 	return resultc;
 }

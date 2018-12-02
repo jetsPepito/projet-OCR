@@ -12,27 +12,20 @@ int main()
     */
 
     //Training
-    train(5000);
+    train(2000);
 
     //Evaluation
     double success_rate = 0;
-    for (int j = 0; j < 9; j++)
+    for (int j = 0; j < 52; j++)
     {
         //adapt the character
         char i;
-        if(j == 0) {i = 'L';}
-		else if(j == 1) {i = 'e';}
-		else if(j == 2) {i = 'i';}
-		else if(j == 3) {i = 'm';}
-		else if(j == 4) {i = 'o';}
-		else if(j == 5) {i = 'p';}
-		else if(j == 6) {i = 'r';}
-		else if(j == 7) {i = 's';}
-		else {i = 'u';}
+        if(j >= 0 && j <= 25) {i = j + 65;} //uppercase
+        else {i = j + 71;} //lowercase
 
         //Create the path
         char *PATH;
-        asprintf(&PATH, "./dataset_print/arial/%i.bmp", j);
+        asprintf(&PATH, "./dataset_print/arial_2/%i.bmp", j);
 
         //Load the image
         SDL_Surface *img;
@@ -55,7 +48,7 @@ int main()
     }
 
     //Print success rate
-    printf("Success rate : %g\n", (success_rate / 9));
+    printf("Success rate : %g\n", (success_rate / 52));
 
     return 0;
 }
