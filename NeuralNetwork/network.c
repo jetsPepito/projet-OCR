@@ -7,7 +7,7 @@
 #include "network.h"
 #include "../BasicFunctions/basic.h"
 
-#define FILENAME "./save/network_save"
+#define FILENAME "network_save"
 #define MAX_SIZE 100000
 
 
