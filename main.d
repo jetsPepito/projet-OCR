@@ -567,4 +567,4 @@ main: main.c main.h BasicFunctions/basic.h \
   /usr/local/Cellar/gtk+/2.24.32_2/include/gtk-2.0/gtk/gtkpreview.h \
   /usr/local/Cellar/gtk+/2.24.32_2/include/gtk-2.0/gtk/gtktipsquery.h \
   GTK+/callback.h GTK+/../ImageTreatment/image_treatment.h \
-  GTK+/document.h GTK+/error.h
+  GTK+/document.h GTK+/error.h GTK+/UI.c

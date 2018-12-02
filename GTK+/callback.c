@@ -1,4 +1,4 @@
-#include "error.c"
+#include "error.h"
 #include "document.h"
 #include <SDL/SDL_image.h>
 #include <SDL/SDL.h>
