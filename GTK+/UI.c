@@ -10,7 +10,7 @@
 
 docs_t docs = {NULL,NULL,NULL};
 
-int main (int argc, char **argv)
+int UI (int argc, char **argv)
 {
   GtkWidget *p_window = NULL;
   GtkWidget *p_main_box = NULL;
