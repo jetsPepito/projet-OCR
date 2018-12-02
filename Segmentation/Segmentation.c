@@ -7,6 +7,7 @@
 #include "Histogram.h"
 #include <err.h>
 #include "../ImageTreatment/sdl.h"
+#include "../NeuralNetwork/network.h"
 
 
 char* Segmentation (SDL_Surface* img)
@@ -19,6 +20,7 @@ char* Segmentation (SDL_Surface* img)
 	int colInf;
 	int colSup;
 	int isPixel = 0;
+    //int startLine = 0;
 
     int blank = 0;
     char* text = "";
@@ -55,6 +57,7 @@ char* Segmentation (SDL_Surface* img)
 			}
 			lineSup = i;
 
+
 			for (int c = 0; c < width; c++)
 			{
 				for (int l = lineInf; l < lineSup; l++)
@@ -69,10 +72,13 @@ char* Segmentation (SDL_Surface* img)
 					colInf = c;
 
                         if (blank >= 10)
-                                asprintf(&text, "%s    ", text);
+                        {
+                            asprintf(&text, "%s    ", text);
+                            
+                        }
                         else
                         {
-                            if (blank >= 1)
+                            if (blank >= 3)
                                 asprintf(&text, "%s ", text);
                         }
                         blank = 0;
@@ -101,8 +107,12 @@ char* Segmentation (SDL_Surface* img)
 
                     SDL_BlitSurface(img, R, character, NULL);
                     character = Cut_Borders(character);
-                    asprintf(&text, "%sA", text);
                     character = ResizeChar(character);
+
+                    struct Network n;
+                    char txtofchar = analyze(character, &n);
+                    //char txtofchar = 'a';
+                    asprintf(&text, "%s%c", text, txtofchar);
 				}
                 else
                 {

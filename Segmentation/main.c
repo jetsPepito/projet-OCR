@@ -30,7 +30,7 @@ int main()
     //SDL_WM_SetCaption("Chargement d'images en SDL", NULL);
 	//image = SDL_LoadBMP("Lorem-Ipsum.bmp");
 	image = SDL_LoadBMP("ascii.bmp");
-    //image = IMG_Load("../NeuralNetwork/dataset_print/arial_2/dataset.png");
+    image = IMG_Load("../NeuralNetwork/dataset_print/arial_2/dataset.png");
     blackwhite(image);
     
 	text = Segmentation(image);

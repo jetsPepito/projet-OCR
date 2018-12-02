@@ -5,7 +5,7 @@ CFLAGS= -g -Wall -Wextra -std=c99  `pkg-config --cflags sdl`
 LDFLAGS=
 LDLIBS= -lm `pkg-config --libs sdl` -lSDL_image -lm
 
-SRC= main.c Segmentation.c Histogram.c ../BasicFunctions/basic.c ../ImageTreatment/image_treatment.c ../ImageTreatment/sdl.c
+SRC= main.c Segmentation.c Histogram.c ../BasicFunctions/basic.c ../ImageTreatment/image_treatment.c ../ImageTreatment/sdl.c ../NeuralNetwork/network.c
 OBJ= ${SRC:.c=.o}
 	DEP= ${SRC:.c=.d}
 
