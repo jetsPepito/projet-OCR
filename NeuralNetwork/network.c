@@ -532,7 +532,6 @@ void createNetwork(Network *n, int NBO, int NBI, int NBH)
 		int expected = (char)(rand()%51);
 		asprintf(&path, "./dataset_print/arial_2/%i.bmp", expected);
 		error = train(n, path, expected, 0.1f);
-		printf("error = %f    %d\r", error, i);
 	}
 	save_network(n);
 	calcSuccess(n);
@@ -541,9 +540,10 @@ void createNetwork(Network *n, int NBO, int NBI, int NBH)
 
 /* PUBLIC FUNCTION */
 
-char network(SDL_Surface *img)
+char network(char *path)
 {
-	if (img->w != 10){printf("wrong image size");}
+	SDL_Surface *img;
+	img = SDL_LoadBMP(path);
 
 	struct Network n_eval;
 	char c = 0;
