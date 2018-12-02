@@ -101,8 +101,10 @@ char* Segmentation (SDL_Surface* img)
 
                     // make operation on character here
                     
-                    character = SDL_CreateRGBSurface(0, colSup-colInf, lineSup-lineInf, 32, 0, 0, 0, 0);
-                    SDL_Rect rectangle = {colInf, lineInf, colSup-colInf , lineSup-lineInf};
+                    character = SDL_CreateRGBSurface(0, colSup-colInf, 
+                                            lineSup-lineInf, 32, 0, 0, 0, 0);
+                    SDL_Rect rectangle = {colInf, lineInf, colSup-colInf ,
+                                                        lineSup-lineInf};
                     SDL_Rect* R = &rectangle;
 
                     SDL_BlitSurface(img, R, character, NULL);
@@ -266,8 +268,10 @@ void SaveSegChar (SDL_Surface* img, char* path)
                     }
                     colSup = c;
 
-                    character = SDL_CreateRGBSurface(0, colSup-colInf, lineSup - lineInf, 32, 0, 0, 0, 0);
-                    SDL_Rect rectangle = {colInf, lineInf, colSup-colInf, lineSup-lineInf};
+                    character = SDL_CreateRGBSurface(0, colSup-colInf, 
+                                            lineSup - lineInf, 32, 0, 0, 0, 0);
+                    SDL_Rect rectangle = {colInf, lineInf, colSup-colInf, 
+                                                            lineSup-lineInf};
                     SDL_Rect* R = &rectangle;
                     
                     SDL_BlitSurface(img, R, character, NULL);
