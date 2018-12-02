@@ -6,6 +6,7 @@
 #include "../ImageTreatment/image_treatment.h"
 #include <SDL/SDL_image.h>
 #include <SDL/SDL.h>
+#include "UI.h"
 
 
 docs_t docs = {NULL,NULL,NULL};

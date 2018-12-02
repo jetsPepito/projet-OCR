@@ -17,6 +17,6 @@
 # include "GTK+/callback.h"
 # include "GTK+/document.h"
 # include "GTK+/error.h"
-# include "GTK+/Ui.c"
+# include "GTK+/UI.h"
 
 # endif
